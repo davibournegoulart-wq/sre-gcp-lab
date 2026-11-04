@@ -23,7 +23,8 @@ function el(tag, props = {}, children = []) {
 
 function setTone(node, tone) { node.dataset.tone = tone; }
 function setRing(id, ratio) { $(id).style.strokeDashoffset = String(RING * (1 - Math.max(0, Math.min(1, ratio)))); }
-function fmt(n, digits = 1) { return Number(n).toFixed(digits); }
+function fmt(n, digits = 1) { return n === null || n === undefined ? "—" : Number(n).toFixed(digits); }
+function ms(n) { return n === null || n === undefined ? "—" : `${fmt(n)} ms`; }
 
 // ---------- Clock ----------
 function tickClock() {
@@ -77,13 +78,17 @@ function pushSample(key, value) {
 }
 
 // ---------- Rendering ----------
-let lastTotal = null;
-let lastTime = null;
 
 function renderStatus(data) {
   const pill = $("status-pill");
   const text = $("status-text");
-  if (data.status === "NOMINAL") {
+  if (data.status === "PROMETHEUS_DOWN") {
+    setTone(pill, "alert");
+    text.textContent = "Prometheus unreachable";
+  } else if (data.status === "NO_TRAFFIC") {
+    setTone(pill, "ok");
+    text.textContent = "No API traffic in the last 5 min";
+  } else if (data.status === "NOMINAL") {
     setTone(pill, "ok");
     text.textContent = "All systems nominal";
   } else if (data.burn_rate > 14.4 || data.availability_pct < 99.5) {
@@ -95,41 +100,38 @@ function renderStatus(data) {
   }
 }
 
+// Values are null when Prometheus has no samples yet (e.g. no traffic in the window).
 function renderMetrics(data) {
-  const availTone = data.availability_pct < 99.5 ? "alert" : data.availability_pct < 100 ? "warn" : "ok";
-  setTone($("card-avail"), availTone);
-  $("metric-avail").textContent = `${fmt(data.availability_pct, 3)}%`;
-  $("metric-budget").textContent = `${fmt(data.error_budget_remaining_pct)}%`;
-  setRing("ring-avail", data.error_budget_remaining_pct / 100);
+  const avail = data.availability_pct;
+  setTone($("card-avail"), avail === null ? "ok" : avail < 99.5 ? "alert" : avail < 100 ? "warn" : "ok");
+  $("metric-avail").textContent = avail === null ? "—" : `${fmt(avail, 3)}%`;
+  $("metric-budget").textContent = data.error_budget_remaining_pct === null ? "—" : `${fmt(data.error_budget_remaining_pct)}%`;
+  setRing("ring-avail", (data.error_budget_remaining_pct ?? 100) / 100);
 
-  const burnTone = data.burn_rate > 14.4 ? "alert" : data.burn_rate > 1 ? "warn" : "ok";
-  setTone($("card-burn"), burnTone);
+  const burn = data.burn_rate ?? 0;
+  setTone($("card-burn"), burn > 14.4 ? "alert" : burn > 1 ? "warn" : "ok");
   $("metric-burn").textContent = fmt(data.burn_rate);
-  setRing("ring-burn", data.burn_rate / 20);
+  $("metric-burn-1h").textContent = fmt(data.burn_rate_1h);
+  setRing("ring-burn", burn / 20);
 
-  const latTone = data.p95_ms > 300 ? "alert" : data.p95_ms > 150 ? "warn" : "ok";
-  setTone($("card-latency"), latTone);
+  const p95 = data.p95_ms ?? 0;
+  setTone($("card-latency"), p95 > 300 ? "alert" : p95 > 150 ? "warn" : "ok");
   $("metric-p95").textContent = fmt(data.p95_ms);
   $("metric-p50").textContent = fmt(data.p50_ms);
   $("metric-p99").textContent = fmt(data.p99_ms);
-  setRing("ring-latency", data.p95_ms / 300);
+  setRing("ring-latency", p95 / 300);
 
-  // Real throughput from the request counter, not a random number.
-  const now = data.timestamp;
-  let rps = 0;
-  if (lastTotal !== null && now > lastTime) rps = Math.max(0, (data.total_requests - lastTotal) / (now - lastTime));
-  lastTotal = data.total_requests; lastTime = now;
-  $("metric-rps").textContent = fmt(rps);
+  $("metric-rps").textContent = fmt(data.rps, 2);
   $("metric-total").textContent = data.total_requests.toLocaleString("en-US");
   $("metric-errors").textContent = data.total_errors.toLocaleString("en-US");
-  $("metric-cpu").textContent = `${data.cpu_pct}%`;
-  $("metric-mem").textContent = `${data.memory_pct}%`;
-  setTone($("card-traffic"), data.cpu_pct > 85 ? "warn" : "ok");
-  setRing("ring-cpu", data.cpu_pct / 100);
+  $("metric-cpu").textContent = data.cpu_pct === null ? "—" : `${fmt(data.cpu_pct)}%`;
+  $("metric-mem").textContent = data.memory_mb === null ? "—" : `${fmt(data.memory_mb, 0)} MB`;
+  setTone($("card-traffic"), (data.cpu_pct ?? 0) > 85 ? "warn" : "ok");
+  setRing("ring-cpu", (data.cpu_pct ?? 0) / 100);
 
-  pushSample("errors", Math.max(0, 100 - data.availability_pct));
-  pushSample("p95", data.p95_ms);
-  pushSample("rps", rps);
+  pushSample("errors", avail === null ? 0 : Math.max(0, 100 - avail));
+  pushSample("p95", p95);
+  pushSample("rps", data.rps ?? 0);
   drawChart();
 }
 
@@ -140,47 +142,61 @@ function toneFor(status) {
   return "ok";
 }
 
-function renderRegions(nodes) {
-  const list = $("regions");
-  const maxPing = Math.max(200, ...nodes.map((n) => n.ping_ms));
-  list.replaceChildren(...nodes.map((n) => {
-    const bar = el("span");
-    bar.style.width = `${Math.min(100, (n.ping_ms / maxPing) * 100)}%`;
-    return el("li", { class: "region", dataset: { tone: toneFor(n.status) } }, [
-      el("div", {}, [el("p", { class: "region-name", text: n.name }), el("p", { class: "region-id mono", text: `${n.id} · load ${n.load}%` })]),
-      el("p", { class: "region-ping mono", text: `${fmt(n.ping_ms)} ms` }),
-      el("div", { class: "region-bar", "aria-hidden": "true" }, [bar]),
-    ]);
-  }));
-  const avg = nodes.reduce((s, n) => s + n.ping_ms, 0) / (nodes.length || 1);
-  $("avg-ping").textContent = `${fmt(avg)} ms avg`;
-}
-
 function stateCell(status) {
   return el("td", {}, [el("span", { class: "state", dataset: { tone: toneFor(status) }, text: status })]);
 }
 
+function emptyRow(cols, text) {
+  return el("tr", {}, [el("td", { colspan: String(cols), class: "muted", text })]);
+}
+
 function renderEndpoints(endpoints) {
+  if (!endpoints.length) return $("endpoints-body").replaceChildren(emptyRow(6, "No /api/v1 traffic in the last 5 minutes. Send some requests from Fault injection."));
   $("endpoints-body").replaceChildren(...endpoints.map((e) => el("tr", {}, [
-    el("td", { text: `${e.method} ${e.route}` }),
-    el("td", { text: `${fmt(e.p50_ms)} ms` }),
-    el("td", { text: `${fmt(e.p95_ms)} ms` }),
-    el("td", { text: `${fmt(e.error_pct)}%` }),
-    el("td", { text: e.sla }),
+    el("td", { text: e.route }),
+    el("td", { text: fmt(e.rps, 2) }),
+    el("td", { text: ms(e.p50_ms) }),
+    el("td", { text: ms(e.p95_ms) }),
+    el("td", { text: e.error_pct === null ? "—" : `${fmt(e.error_pct, 2)}%` }),
     stateCell(e.status),
   ])));
 }
 
-function renderPods(pods) {
-  $("pods-body").replaceChildren(...pods.map((p) => el("tr", {}, [
-    el("td", { text: p.name }),
-    el("td", { text: p.zone }),
-    stateCell(p.status),
-    el("td", { text: `${p.cpu_m}m` }),
-    el("td", { text: `${p.mem_mi} Mi` }),
-    el("td", { text: String(p.restarts) }),
-    el("td", { text: `${fmt(p.p95_ms)} ms` }),
+function renderTargets(targets) {
+  if (!targets.length) return $("pods-body").replaceChildren(emptyRow(5, "No scrape targets reported."));
+  $("pods-body").replaceChildren(...targets.map((t) => el("tr", {}, [
+    el("td", { text: t.job }),
+    el("td", { text: t.instance }),
+    stateCell(t.health === "up" ? "Up" : t.health === "down" ? "Error" : "Degraded"),
+    el("td", { text: ms(t.last_scrape_ms) }),
+    el("td", { class: "muted", text: t.error || "—" }),
   ])));
+}
+
+function feedItem(title, meta, text, tone) {
+  return el("li", { dataset: { tone } }, [
+    el("span", { class: "feed-title", text: title }),
+    el("span", { class: "feed-meta mono", text: meta }),
+    ...(text ? [el("span", { class: "feed-text", text })] : []),
+  ]);
+}
+
+function when(iso) {
+  const d = iso ? new Date(iso) : null;
+  return d && !isNaN(d) ? d.toISOString().replace("T", " ").slice(0, 19) + " UTC" : "—";
+}
+
+async function fetchAlerts() {
+  try {
+    const data = await (await fetch("/api/suite/alerts", { cache: "no-store" })).json();
+    const firing = data.alerts.map((a) => feedItem(a.name || "Alert", `${a.severity || "—"} · since ${when(a.starts_at)}`, a.summary, a.severity === "critical" ? "alert" : "warn"));
+    $("alerts-firing").replaceChildren(...(firing.length ? firing : [el("li", { class: "feed-empty", text: data.errors.includes("alertmanager unreachable") ? "Alertmanager unreachable" : "Nothing firing" })]));
+    const reports = data.reports.map((r) => feedItem(r.alert || "Report", `${when(r.timestamp)} · ${r.status || "—"} · ${r.source || "—"}`, r.hypothesis, "ok"));
+    $("alerts-reports").replaceChildren(...(reports.length ? reports : [el("li", { class: "feed-empty", text: data.errors.includes("triage bot unreachable") ? "Triage bot unreachable" : "No reports yet" })]));
+    const count = $("alerts-count");
+    count.textContent = `${data.alerts.length} firing`;
+    count.dataset.tone = data.alerts.length ? "alert" : "ok";
+  } catch { /* next poll retries */ }
 }
 
 let logsPaused = false;
@@ -266,7 +282,7 @@ async function onChaos(event) {
 async function sendBurst(count) {
   try {
     const json = await chaosCall(`/api/suite/simulate-traffic?count=${count}`);
-    $("chaos-msg").textContent = `${json.requests_sent} requests · ${json.successes} ok · ${json.failures} failed · ${json.avg_latency_ms} ms avg`;
+    $("chaos-msg").textContent = `${json.requests_sent} real requests · ${json.successes} ok · ${json.failures} failed · ${json.wall_time_ms} ms wall time`;
   } catch (e) {
     if (e.message !== "unauthorized") $("chaos-msg").textContent = `Request failed: ${e.message}`;
   }
@@ -361,14 +377,13 @@ let failures = 0;
 async function fetchTelemetry() {
   try {
     const res = await fetch("/api/suite/telemetry", { cache: "no-store" });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    if (!res.ok && res.status !== 503) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
     failures = 0;
     renderStatus(data);
-    renderMetrics(data);
-    renderRegions(data.nodes);
+    if (data.source === "prometheus") renderMetrics(data);
     renderEndpoints(data.endpoints);
-    renderPods(data.pods);
+    renderTargets(data.targets);
     renderLogs(data.recent_logs);
     renderChaos(data.chaos_state, Boolean(data.chaos_enabled));
   } catch {
@@ -380,12 +395,15 @@ async function fetchTelemetry() {
 }
 
 let pollTimer = null;
+let alertTimer = null;
 function startPolling() {
   if (pollTimer) return;
   fetchTelemetry();
+  fetchAlerts();
   pollTimer = setInterval(fetchTelemetry, POLL_MS);
+  alertTimer = setInterval(fetchAlerts, POLL_MS * 5);
 }
-function stopPolling() { clearInterval(pollTimer); pollTimer = null; }
+function stopPolling() { clearInterval(pollTimer); clearInterval(alertTimer); pollTimer = alertTimer = null; }
 
 document.addEventListener("DOMContentLoaded", () => {
   drawGrid();

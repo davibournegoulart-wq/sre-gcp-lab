@@ -1,3 +1,4 @@
+import asyncio
 import hmac
 import json
 import os
@@ -14,16 +15,16 @@ from typing import Optional
 from fastapi import Depends, FastAPI, Header, HTTPException, Request, Response, status, Query
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
-from prometheus_fastapi_instrumentator import Instrumentator
+import httpx
+from prometheus_fastapi_instrumentator import Instrumentator, metrics
 
 # Context variable for distributed tracing correlation
 trace_id_ctx: ContextVar[str] = ContextVar("trace_id", default="system")
 RECENT_LOGS = deque(maxlen=60)
-REQUEST_METRICS = {
-    "total_requests": 0,
-    "total_errors": 0,
-    "last_reset": time.time()
-}
+PROMETHEUS_URL = os.getenv("PROMETHEUS_URL", "http://prometheus:9090")
+ALERTMANAGER_URL = os.getenv("ALERTMANAGER_URL", "http://alertmanager:9093")
+TRIAGE_BOT_URL = os.getenv("TRIAGE_BOT_URL", "http://triage-bot:5001")
+SLO_ERROR_BUDGET = 0.005  # 99.5% availability SLO
 
 
 class StructuredLogFilter(logging.Filter):
@@ -79,6 +80,7 @@ app = FastAPI(
     version="1.1.0"
 )
 
+QUIET_PATHS = re.compile(r"^/(healthz|ready|metrics|api/suite/|static/)")
 TRACE_ID_RE = re.compile(r"^[A-Za-z0-9_.:-]{1,64}$")
 
 # Strict CSP: the suite loads only its own CSS/JS/fonts, no inline script.
@@ -109,22 +111,26 @@ async def trace_id_middleware(request: Request, call_next):
         response.headers["X-Trace-ID"] = trace_id
         for header, value in SECURITY_HEADERS.items():
             response.headers.setdefault(header, value)
-        if request.url.path not in ["/healthz", "/ready", "/metrics", "/api/suite/telemetry"]:
-            REQUEST_METRICS["total_requests"] += 1
-            if response.status_code >= 500:
-                REQUEST_METRICS["total_errors"] += 1
+        if not QUIET_PATHS.match(request.url.path):
             logger.info(f"Handled {request.method} {request.url.path} -> {response.status_code} in {duration_ms}ms")
         return response
     finally:
         trace_id_ctx.reset(token)
 
 
-# Initialize Prometheus metrics instrumentation
+# Initialize Prometheus metrics instrumentation.
+# The dashboard's own polling and the chaos controls are excluded: counting them
+# padded http_requests_total with 2xx and diluted every burn-rate alert.
+NON_SLO_HANDLERS = ["/healthz", "/ready", "/metrics", "^/$", "^/api/suite/", "^/static/", "^/chaos/"]
 instrumentator = Instrumentator(
     should_group_status_codes=True,
     should_ignore_untemplated=True,
-    excluded_handlers=["/healthz", "/ready", "/metrics"]
+    excluded_handlers=NON_SLO_HANDLERS,
 )
+# Fine per-handler buckets (the default 0.1/0.5/1 s can't resolve a 300 ms p95 SLO).
+instrumentator.add(metrics.default(
+    latency_lowr_buckets=(0.005, 0.01, 0.025, 0.05, 0.1, 0.2, 0.3, 0.5, 1, 2, 5, 10),
+))
 instrumentator.instrument(app).expose(app)
 
 # Chaos & Fault Injection State
@@ -167,102 +173,167 @@ def get_mission_control_suite():
     return "<h1>SRE Mission Control Suite</h1>"
 
 
-@app.get("/api/suite/telemetry", tags=["Mission Control Suite"])
-def get_suite_telemetry():
-    """Real-time data-dense telemetry payload for Apple Pro Data UI."""
-    err_rate = FAULT_STATE["injected_error_rate"]
-    latency_added = FAULT_STATE["injected_latency_ms"]
-    circuit = FAULT_STATE["circuit_broken"]
-    
-    # Mathematical SLO Calculations
-    avail_pct = 0.0 if circuit else max(0.0, round((1.0 - err_rate) * 100.0, 3))
-    # 30-day error budget is 0.5% (0.005)
-    budget_consumed_pct = 100.0 if circuit else min(100.0, round((err_rate / 0.005) * 100.0, 1)) if err_rate > 0 else 0.0
-    budget_remaining_pct = max(0.0, round(100.0 - budget_consumed_pct, 1))
-    burn_rate_multiplier = 200.0 if circuit else round(err_rate / 0.005, 1)
+API_HANDLERS = 'handler=~"/api/v1/.*"'
+TELEMETRY_QUERIES = {
+    "error_ratio_5m": f'sum(rate(http_requests_total{{{API_HANDLERS},status="5xx"}}[5m])) / sum(rate(http_requests_total{{{API_HANDLERS}}}[5m]))',
+    "error_ratio_1h": f'sum(rate(http_requests_total{{{API_HANDLERS},status="5xx"}}[1h])) / sum(rate(http_requests_total{{{API_HANDLERS}}}[1h]))',
+    # 30-day budget window; with less history Prometheus uses what exists.
+    "error_ratio_30d": f'sum(increase(http_requests_total{{{API_HANDLERS},status="5xx"}}[30d])) / sum(increase(http_requests_total{{{API_HANDLERS}}}[30d]))',
+    "p50_s": f'histogram_quantile(0.50, sum(rate(http_request_duration_seconds_bucket{{{API_HANDLERS}}}[1m])) by (le))',
+    "p95_s": f'histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{{{API_HANDLERS}}}[1m])) by (le))',
+    "p99_s": f'histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket{{{API_HANDLERS}}}[1m])) by (le))',
+    "rps": f'sum(rate(http_requests_total{{{API_HANDLERS}}}[1m]))',
+    "total_requests": f'sum(http_requests_total{{{API_HANDLERS}}})',
+    "total_errors": f'sum(http_requests_total{{{API_HANDLERS},status="5xx"}})',
+    "cpu_pct": 'rate(process_cpu_seconds_total{job="sre-api"}[1m]) * 100',
+    "memory_mb": 'process_resident_memory_bytes{job="sre-api"} / 1048576',
+}
+PER_HANDLER_QUERIES = {
+    "rps": f'sum by (handler) (rate(http_requests_total{{{API_HANDLERS}}}[5m]))',
+    "error_ratio": f'sum by (handler) (rate(http_requests_total{{{API_HANDLERS},status="5xx"}}[5m])) / sum by (handler) (rate(http_requests_total{{{API_HANDLERS}}}[5m]))',
+    "p50_s": f'histogram_quantile(0.50, sum by (le, handler) (rate(http_request_duration_seconds_bucket{{{API_HANDLERS}}}[5m])))',
+    "p95_s": f'histogram_quantile(0.95, sum by (le, handler) (rate(http_request_duration_seconds_bucket{{{API_HANDLERS}}}[5m])))',
+}
 
-    p50_ms = round(1.8 + (latency_added * 0.4), 1)
-    p95_ms = round(4.2 + latency_added, 1)
-    p99_ms = round(12.5 + (latency_added * 1.3), 1)
 
-    is_nominal = (err_rate == 0.0 and latency_added == 0 and not circuit)
+def _finite(value: str) -> Optional[float]:
+    v = float(value)
+    return None if v != v or v in (float("inf"), float("-inf")) else v  # NaN when no traffic
 
-    # Dynamic Edge Nodes with jitter
-    latency_jitter = random.uniform(0.9, 1.1)
-    nodes = [
-        {"id": "us-central1", "name": "Iowa (Primary)", "lat": 41.8780, "lon": -93.0977, "ping_ms": round((18 + latency_added * 0.5) * latency_jitter, 1), "status": "Degraded" if not is_nominal else "Nominal", "load": min(100, int(42 + err_rate * 50))},
-        {"id": "us-east4", "name": "Ashburn Edge", "lat": 39.0438, "lon": -77.4874, "ping_ms": round((24 + latency_added * 0.6) * latency_jitter, 1), "status": "Degraded" if not is_nominal else "Nominal", "load": min(100, int(38 + err_rate * 45))},
-        {"id": "europe-west3", "name": "Frankfurt Transit", "lat": 50.1109, "lon": 8.6821, "ping_ms": round((92 + latency_added * 0.8) * latency_jitter, 1), "status": "Degraded" if not is_nominal else "Nominal", "load": min(100, int(52 + err_rate * 40))},
-        {"id": "asia-east1", "name": "Taiwan Gateway", "lat": 23.6978, "lon": 120.9605, "ping_ms": round((148 + latency_added * 0.9) * latency_jitter, 1), "status": "Degraded" if not is_nominal else "Nominal", "load": min(100, int(61 + err_rate * 35))},
-        {"id": "southamerica-east1", "name": "São Paulo Hub", "lat": -23.5505, "lon": -46.6333, "ping_ms": round((110 + latency_added * 0.7) * latency_jitter, 1), "status": "Degraded" if not is_nominal else "Nominal", "load": min(100, int(47 + err_rate * 40))}
-    ]
 
-    # Dynamic Kubernetes Pod Matrix
-    pods = [
-        {"name": "sre-api-7b8f994-k9z2", "zone": "us-central1-a", "status": "Error" if circuit else ("Degraded" if err_rate > 0.2 else "Running"), "cpu_m": int(42 + err_rate * 120), "mem_mi": int(68 + latency_added * 0.05), "restarts": 0 if not circuit else 3, "p95_ms": p95_ms},
-        {"name": "sre-api-7b8f994-x1p4", "zone": "us-central1-b", "status": "Error" if circuit else ("Degraded" if err_rate > 0.2 else "Running"), "cpu_m": int(39 + err_rate * 115), "mem_mi": int(65 + latency_added * 0.05), "restarts": 0 if not circuit else 2, "p95_ms": round(p95_ms * 0.96, 1)},
-        {"name": "sre-api-7b8f994-m7q8", "zone": "us-central1-c", "status": "Error" if circuit else ("Degraded" if err_rate > 0.2 else "Running"), "cpu_m": int(45 + err_rate * 130), "mem_mi": int(71 + latency_added * 0.06), "restarts": 0 if not circuit else 4, "p95_ms": round(p95_ms * 1.04, 1)}
-    ]
+async def prom_query(client: httpx.AsyncClient, query: str) -> list:
+    r = await client.get(f"{PROMETHEUS_URL}/api/v1/query", params={"query": query})
+    r.raise_for_status()
+    return r.json()["data"]["result"]
 
-    endpoints_matrix = [
-        {
-            "route": "/api/v1/items",
-            "method": "GET",
-            "p50_ms": p50_ms,
-            "p95_ms": p95_ms,
-            "error_pct": 100.0 if circuit else round(err_rate * 100, 1),
-            "status": "Breach" if (circuit or p95_ms > 300 or err_rate > 0.01) else "Nominal",
-            "sla": "99.5%"
-        },
-        {
-            "route": "/api/v1/items/{id}",
-            "method": "GET",
-            "p50_ms": round(p50_ms * 0.9, 1),
-            "p95_ms": round(p95_ms * 0.95, 1),
-            "error_pct": 100.0 if circuit else round(err_rate * 100, 1),
-            "status": "Breach" if (circuit or p95_ms > 300 or err_rate > 0.01) else "Nominal",
-            "sla": "99.5%"
-        },
-        {
-            "route": "/healthz",
-            "method": "GET",
-            "p50_ms": 0.4,
-            "p95_ms": 1.2,
-            "error_pct": 0.0,
-            "status": "Nominal",
-            "sla": "99.9%"
-        },
-        {
-            "route": "/ready",
-            "method": "GET",
-            "p50_ms": 0.6,
-            "p95_ms": 1.5,
-            "error_pct": 100.0 if (err_rate >= 1.0 or circuit) else 0.0,
-            "status": "Failing" if (err_rate >= 1.0 or circuit) else "Nominal",
-            "sla": "99.9%"
-        }
-    ]
 
+def _scalar(result: list) -> Optional[float]:
+    return _finite(result[0]["value"][1]) if result else None
+
+
+def _round(v: Optional[float], digits: int = 1, scale: float = 1.0) -> Optional[float]:
+    return None if v is None else round(v * scale, digits)
+
+
+async def collect_telemetry() -> dict:
+    """Golden signals from Prometheus. Nothing here is simulated."""
+    async with httpx.AsyncClient(timeout=3.0) as client:
+        names = list(TELEMETRY_QUERIES)
+        handler_names = list(PER_HANDLER_QUERIES)
+        results = await asyncio.gather(
+            *(prom_query(client, TELEMETRY_QUERIES[n]) for n in names),
+            *(prom_query(client, PER_HANDLER_QUERIES[n]) for n in handler_names),
+            client.get(f"{PROMETHEUS_URL}/api/v1/targets"),
+            return_exceptions=True,
+        )
+    scalars = results[:len(names)]
+    per_handler = results[len(names):len(names) + len(handler_names)]
+    targets_resp = results[-1]
+    if all(isinstance(r, Exception) for r in scalars):
+        raise RuntimeError("Prometheus unreachable")
+    m = {n: (None if isinstance(r, Exception) else _scalar(r)) for n, r in zip(names, scalars)}
+
+    err5 = m["error_ratio_5m"]
+    availability = None if err5 is None else max(0.0, 100.0 * (1 - err5))
+    burn_5m = None if err5 is None else err5 / SLO_ERROR_BUDGET
+    burn_1h = None if m["error_ratio_1h"] is None else m["error_ratio_1h"] / SLO_ERROR_BUDGET
+    budget_left = None if m["error_ratio_30d"] is None else max(0.0, 100.0 * (1 - m["error_ratio_30d"] / SLO_ERROR_BUDGET))
+
+    endpoints: dict = {}
+    for name, result in zip(handler_names, per_handler):
+        if isinstance(result, Exception):
+            continue
+        for row in result:
+            endpoints.setdefault(row["metric"].get("handler", "?"), {})[name] = _finite(row["value"][1])
+    endpoint_rows = []
+    for handler, v in sorted(endpoints.items()):
+        p95_ms = _round(v.get("p95_s"), 1, 1000)
+        err_pct = _round(v.get("error_ratio"), 2, 100)
+        breach = (p95_ms or 0) > 300 or (err_pct or 0) > SLO_ERROR_BUDGET * 100
+        endpoint_rows.append({
+            "route": handler, "rps": _round(v.get("rps"), 2), "p50_ms": _round(v.get("p50_s"), 1, 1000),
+            "p95_ms": p95_ms, "error_pct": err_pct, "status": "Breach" if breach else "Nominal",
+        })
+
+    targets = []
+    if not isinstance(targets_resp, Exception) and targets_resp.status_code == 200:
+        for t in targets_resp.json()["data"]["activeTargets"]:
+            targets.append({
+                "job": t["labels"].get("job"), "instance": t["labels"].get("instance"),
+                "health": t["health"], "last_scrape_ms": _round(t.get("lastScrapeDuration"), 1, 1000),
+                "error": (t.get("lastError") or "")[:200],
+            })
+
+    p95_ms = _round(m["p95_s"], 1, 1000)
+    if availability is None:
+        status_ = "NO_TRAFFIC"
+    elif (burn_5m or 0) > 1 or (p95_ms or 0) > 300:
+        status_ = "INCIDENT_ACTIVE"
+    else:
+        status_ = "NOMINAL"
     return {
-        "status": "NOMINAL" if is_nominal else "INCIDENT_ACTIVE",
-        "availability_pct": avail_pct,
-        "error_budget_remaining_pct": budget_remaining_pct,
-        "burn_rate": burn_rate_multiplier,
-        "p50_ms": p50_ms,
+        "source": "prometheus",
+        "status": status_,
+        "availability_pct": _round(availability, 3),
+        "error_budget_remaining_pct": _round(budget_left, 1),
+        "burn_rate": _round(burn_5m, 1),
+        "burn_rate_1h": _round(burn_1h, 1),
+        "p50_ms": _round(m["p50_s"], 1, 1000),
         "p95_ms": p95_ms,
-        "p99_ms": p99_ms,
-        "cpu_pct": min(100, int(42 + (err_rate * 45) + (latency_added * 0.02))),
-        "memory_pct": min(100, int(58 + (err_rate * 25))),
-        "total_requests": REQUEST_METRICS["total_requests"],
-        "total_errors": REQUEST_METRICS["total_errors"],
-        "nodes": nodes,
-        "pods": pods,
-        "endpoints": endpoints_matrix,
-        "recent_logs": list(RECENT_LOGS),
-        "chaos_state": FAULT_STATE,
-        "chaos_enabled": CHAOS_ENABLED,
-        "timestamp": time.time()
+        "p99_ms": _round(m["p99_s"], 1, 1000),
+        "rps": _round(m["rps"], 2),
+        "total_requests": int(m["total_requests"] or 0),
+        "total_errors": int(m["total_errors"] or 0),
+        "cpu_pct": _round(m["cpu_pct"], 1),
+        "memory_mb": _round(m["memory_mb"], 1),
+        "endpoints": endpoint_rows,
+        "targets": targets,
     }
+
+
+@app.get("/api/suite/telemetry", tags=["Mission Control Suite"])
+async def get_suite_telemetry(response: Response):
+    """Live golden signals from Prometheus plus the in-process log tail."""
+    try:
+        data = await collect_telemetry()
+    except Exception as e:
+        logger.warning(f"Telemetry: Prometheus query failed ({type(e).__name__})")
+        response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+        data = {"source": "unavailable", "status": "PROMETHEUS_DOWN", "endpoints": [], "targets": []}
+    data.update(
+        recent_logs=list(RECENT_LOGS),
+        chaos_state=FAULT_STATE,
+        chaos_enabled=CHAOS_ENABLED,
+        timestamp=time.time(),
+    )
+    return data
+
+
+@app.get("/api/suite/alerts", tags=["Mission Control Suite"])
+async def get_suite_alerts():
+    """Active Alertmanager alerts and the triage bot's latest reports."""
+    out: dict = {"alerts": [], "reports": [], "errors": []}
+    async with httpx.AsyncClient(timeout=3.0) as client:
+        am, bot = await asyncio.gather(
+            client.get(f"{ALERTMANAGER_URL}/api/v2/alerts", params={"active": "true", "silenced": "false"}),
+            client.get(f"{TRIAGE_BOT_URL}/reports", params={"limit": 8}),
+            return_exceptions=True,
+        )
+    if isinstance(am, Exception) or am.status_code != 200:
+        out["errors"].append("alertmanager unreachable")
+    else:
+        for a in am.json()[:20]:
+            out["alerts"].append({
+                "name": a.get("labels", {}).get("alertname"),
+                "severity": a.get("labels", {}).get("severity"),
+                "summary": (a.get("annotations", {}).get("summary") or "")[:300],
+                "starts_at": a.get("startsAt"),
+            })
+    if isinstance(bot, Exception) or bot.status_code != 200:
+        out["errors"].append("triage bot unreachable")
+    else:
+        out["reports"] = bot.json().get("reports", [])[:8]
+    return out
 
 
 @app.get("/healthz", status_code=status.HTTP_200_OK, tags=["Health"])
@@ -367,30 +438,21 @@ def trip_circuit():
 
 
 @app.post("/api/suite/simulate-traffic", tags=["Mission Control Suite"], dependencies=[Depends(require_chaos_token)])
-def simulate_traffic(count: int = Query(25, ge=1, le=100)):
-    """Simulates realistic traffic burst for live telemetry and chart progression."""
-    successes = 0
-    failures = 0
-    total_time = 0.0
-    for _ in range(count):
-        err_rate = FAULT_STATE["injected_error_rate"]
-        is_err = FAULT_STATE["circuit_broken"] or (err_rate > 0 and random.random() < err_rate)
-        time_added = (FAULT_STATE["injected_latency_ms"] / 1000.0) if FAULT_STATE["injected_latency_ms"] > 0 else 0.002
-        REQUEST_METRICS["total_requests"] += 1
-        if is_err:
-            REQUEST_METRICS["total_errors"] += 1
-            failures += 1
-            logger.error(f"Downstream 500 error on /api/v1/items: connection timeout")
-        else:
-            successes += 1
-            logger.info(f"Handled GET /api/v1/items -> 200 OK in {round((time_added + 0.002)*1000, 1)}ms")
-        total_time += time_added
+async def simulate_traffic(count: int = Query(25, ge=1, le=100)):
+    """Sends real HTTP requests to the business API so Prometheus, the SLO alerts
+    and Grafana all see them (the old version only bumped an in-memory counter)."""
+    limits = httpx.Limits(max_connections=20)
+    async with httpx.AsyncClient(base_url="http://127.0.0.1:8000", timeout=10.0, limits=limits) as client:
+        started = time.perf_counter()
+        results = await asyncio.gather(*(client.get("/api/v1/items") for _ in range(count)), return_exceptions=True)
+        elapsed = time.perf_counter() - started
+    successes = sum(1 for r in results if not isinstance(r, Exception) and r.status_code < 500)
     return {
         "status": "success",
         "requests_sent": count,
         "successes": successes,
-        "failures": failures,
-        "avg_latency_ms": round((total_time / count) * 1000, 1)
+        "failures": count - successes,
+        "wall_time_ms": round(elapsed * 1000, 1),
     }
 
 
@@ -445,10 +507,11 @@ def merge_ai_analysis(base: dict, raw: str) -> dict:
 
 
 def build_triage_prompt(base: dict, telemetry: dict) -> str:
-    snapshot = {k: telemetry[k] for k in (
-        "status", "availability_pct", "error_budget_remaining_pct", "burn_rate",
-        "p50_ms", "p95_ms", "p99_ms", "cpu_pct", "memory_pct", "total_requests", "total_errors", "chaos_state")}
-    logs = [f"{l['time']} {l['level']} {l['message'][:200]}" for l in telemetry["recent_logs"][-20:]]
+    snapshot = {k: telemetry.get(k) for k in (
+        "status", "availability_pct", "error_budget_remaining_pct", "burn_rate", "burn_rate_1h",
+        "p50_ms", "p95_ms", "p99_ms", "rps", "cpu_pct", "memory_mb", "total_requests", "total_errors")}
+    snapshot["chaos_state"] = FAULT_STATE
+    logs = [f"{l['time']} {l['level']} {l['message'][:200]}" for l in list(RECENT_LOGS)[-20:]]
     return (
         "You are a senior Google SRE triaging a live incident for the service sre-api "
         "(SLOs: availability 99.5%, p95 latency < 300 ms, 30-day error budget 0.5%).\n"
@@ -468,7 +531,7 @@ def ai_status():
 
 
 @app.post("/api/suite/ai-triage", tags=["Mission Control Suite"])
-def trigger_ai_triage(mode: str = Query("rules", pattern="^(rules|ai)$")):
+async def trigger_ai_triage(mode: str = Query("rules", pattern="^(rules|ai)$")):
     """Incident triage. mode=rules is deterministic; mode=ai asks the LLM to rewrite
     the analysis on top of it and falls back to rules on any failure."""
     base = rules_triage()
@@ -483,7 +546,12 @@ def trigger_ai_triage(mode: str = Query("rules", pattern="^(rules|ai)$")):
         base["source"] = f"rules ({blocked})"
         return base
     try:
-        merged = merge_ai_analysis(base, call_llm(build_triage_prompt(base, get_suite_telemetry())))
+        try:
+            telemetry = await collect_telemetry()
+        except Exception:
+            telemetry = {}
+        raw = await asyncio.to_thread(call_llm, build_triage_prompt(base, telemetry))
+        merged = merge_ai_analysis(base, raw)
         merged["source"] = GEMINI_MODEL
         return merged
     except Exception as e:

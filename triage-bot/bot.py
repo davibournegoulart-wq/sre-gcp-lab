@@ -331,6 +331,32 @@ async def receive_alerts(payload: AlertmanagerPayload, background_tasks: Backgro
     return {"status": "accepted", "alerts_queued": len(payload.alerts)}
 
 
+@app.get("/reports")
+def latest_reports(limit: int = 8):
+    """Newest triage reports, trimmed to what the Mission Control card shows."""
+    limit = max(1, min(limit, 20))
+    files = sorted(
+        (f for f in os.listdir(OUTPUT_DIR) if f.startswith("triage_") and f.endswith(".json")),
+        reverse=True,
+    )[:limit]
+    reports = []
+    for name in files:
+        try:
+            with open(os.path.join(OUTPUT_DIR, name)) as f:
+                r = json.load(f)
+        except (OSError, ValueError):
+            continue
+        analysis = r.get("analysis", {})
+        reports.append({
+            "timestamp": r.get("timestamp"),
+            "alert": r.get("alert", {}).get("labels", {}).get("alertname"),
+            "status": r.get("alert", {}).get("status"),
+            "hypothesis": str(analysis.get("hypothesis", ""))[:400],
+            "source": analysis.get("source"),
+        })
+    return {"reports": reports}
+
+
 @app.get("/healthz")
 def health_check():
     return {"status": "ok", "service": "sre-triage-bot", "mode": "active_aiops"}

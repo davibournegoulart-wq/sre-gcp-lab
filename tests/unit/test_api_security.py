@@ -97,3 +97,39 @@ def test_ai_quota_guard(api):
     main._llm_calls.clear()
     assert main.llm_call_allowed(now=1000) is None
     assert "cooldown" in main.llm_call_allowed(now=1001)
+
+
+def test_telemetry_parses_prometheus(api, monkeypatch):
+    import functools
+    import httpx
+    main, client = api
+
+    def handler(request):
+        if request.url.path.endswith("/targets"):
+            return httpx.Response(200, json={"data": {"activeTargets": [
+                {"labels": {"job": "sre-api", "instance": "api:8000"}, "health": "up", "lastScrapeDuration": 0.004}]}})
+        q = request.url.params["query"]
+        if "by (handler)" in q or "by (le, handler)" in q:
+            return httpx.Response(200, json={"data": {"result": [
+                {"metric": {"handler": "/api/v1/items"}, "value": [0, "0.25" if "quantile(0.95" in q else "0.01"]}]}})
+        value = {"error_ratio_5m": "0.01", "p95_s": "0.25", "rps": "NaN"}
+        key = next((k for k, v in main.TELEMETRY_QUERIES.items() if v == q), None)
+        return httpx.Response(200, json={"data": {"result": [{"metric": {}, "value": [0, value.get(key, "0")]}]}})
+
+    monkeypatch.setattr(main.httpx, "AsyncClient", functools.partial(httpx.AsyncClient, transport=httpx.MockTransport(handler)))
+    data = client.get("/api/suite/telemetry").json()
+    assert data["source"] == "prometheus"
+    assert data["availability_pct"] == 99.0 and data["burn_rate"] == 2.0
+    assert data["p95_ms"] == 250.0 and data["rps"] is None  # NaN (no traffic) -> null
+    assert data["status"] == "INCIDENT_ACTIVE"
+    assert data["endpoints"][0]["route"] == "/api/v1/items" and data["targets"][0]["health"] == "up"
+
+
+def test_telemetry_reports_prometheus_down(api, monkeypatch):
+    import functools
+    import httpx
+    main, client = api
+    monkeypatch.setattr(main.httpx, "AsyncClient", functools.partial(
+        httpx.AsyncClient, transport=httpx.MockTransport(lambda r: (_ for _ in ()).throw(httpx.ConnectError("down")))))
+    r = client.get("/api/suite/telemetry")
+    assert r.status_code == 503 and r.json()["status"] == "PROMETHEUS_DOWN"

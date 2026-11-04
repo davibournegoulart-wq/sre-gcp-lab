@@ -41,7 +41,7 @@
   <main id="main" class="page">
     <section class="hero" aria-labelledby="hero-title">
       <h1 id="hero-title" class="display">Mission Control</h1>
-      <p class="hero-sub" id="hero-sub">Golden signals, error-budget burn and incident triage for <span class="mono">sre-api</span> on GKE Autopilot, refreshed every 2 seconds.</p>
+      <p class="hero-sub" id="hero-sub">Golden signals, error-budget burn and incident triage for <span class="mono">sre-api</span>, queried live from Prometheus every 2 seconds.</p>
     </section>
 
     <!-- Golden signals -->
@@ -54,7 +54,7 @@
         <div class="metric-body">
           <div>
             <p class="value mono" id="metric-avail">—</p>
-            <p class="sub">Error budget left <strong class="mono" id="metric-budget">—</strong></p>
+            <p class="sub">30-day budget left <strong class="mono" id="metric-budget">—</strong></p>
           </div>
           <svg class="ring" viewBox="0 0 48 48" aria-hidden="true"><circle class="ring-track" cx="24" cy="24" r="19"/><circle class="ring-fill" id="ring-avail" cx="24" cy="24" r="19"/></svg>
         </div>
@@ -68,7 +68,7 @@
         <div class="metric-body">
           <div>
             <p class="value mono"><span id="metric-burn">—</span><span class="unit">×</span></p>
-            <p class="sub">Multi-window 1h / 5m</p>
+            <p class="sub mono">5m window · 1h <span id="metric-burn-1h">—</span>×</p>
           </div>
           <svg class="ring" viewBox="0 0 48 48" aria-hidden="true"><circle class="ring-track" cx="24" cy="24" r="19"/><circle class="ring-fill" id="ring-burn" cx="24" cy="24" r="19"/></svg>
         </div>
@@ -100,7 +100,7 @@
           </div>
           <svg class="ring" viewBox="0 0 48 48" aria-hidden="true"><circle class="ring-track" cx="24" cy="24" r="19"/><circle class="ring-fill" id="ring-cpu" cx="24" cy="24" r="19"/></svg>
         </div>
-        <p class="footnote mono">CPU <span id="metric-cpu">—</span> · Mem <span id="metric-mem">—</span></p>
+        <p class="footnote mono">CPU <span id="metric-cpu">—</span> · RSS <span id="metric-mem">—</span></p>
       </article>
     </section>
 
@@ -190,13 +190,16 @@
         </div>
       </section>
 
-      <!-- Regions -->
-      <section class="card" aria-labelledby="regions-title">
+      <!-- Alerts -->
+      <section class="card" aria-labelledby="alerts-title">
         <div class="card-head">
-          <h2 id="regions-title" class="title">Edge regions</h2>
-          <span class="tag mono" id="avg-ping">— ms avg</span>
+          <h2 id="alerts-title" class="title">Alerts</h2>
+          <span class="tag mono" id="alerts-count">—</span>
         </div>
-        <ul class="regions" id="regions"></ul>
+        <h3 class="label">Firing in Alertmanager</h3>
+        <ul class="feed" id="alerts-firing"></ul>
+        <h3 class="label feed-gap">Triage bot reports</h3>
+        <ul class="feed" id="alerts-reports"></ul>
       </section>
     </div>
 
@@ -204,10 +207,11 @@
     <section class="card" aria-labelledby="endpoints-title">
       <div class="card-head">
         <h2 id="endpoints-title" class="title">Endpoints</h2>
+        <span class="tag mono">5m window</span>
       </div>
       <div class="table-wrap">
         <table>
-          <thead><tr><th scope="col">Route</th><th scope="col">p50</th><th scope="col">p95</th><th scope="col">5xx</th><th scope="col">SLA</th><th scope="col">Status</th></tr></thead>
+          <thead><tr><th scope="col">Route</th><th scope="col">req/s</th><th scope="col">p50</th><th scope="col">p95</th><th scope="col">5xx</th><th scope="col">Status</th></tr></thead>
           <tbody id="endpoints-body"></tbody>
         </table>
       </div>
@@ -215,12 +219,12 @@
 
     <section class="card" aria-labelledby="pods-title">
       <div class="card-head">
-        <h2 id="pods-title" class="title">Pods</h2>
-        <span class="tag mono">Deployment sre-api</span>
+        <h2 id="pods-title" class="title">Scrape targets</h2>
+        <span class="tag mono">Prometheus</span>
       </div>
       <div class="table-wrap">
         <table>
-          <thead><tr><th scope="col">Pod</th><th scope="col">Zone</th><th scope="col">Status</th><th scope="col">CPU</th><th scope="col">Memory</th><th scope="col">Restarts</th><th scope="col">p95</th></tr></thead>
+          <thead><tr><th scope="col">Job</th><th scope="col">Instance</th><th scope="col">Health</th><th scope="col">Scrape</th><th scope="col">Last error</th></tr></thead>
           <tbody id="pods-body"></tbody>
         </table>
       </div>
@@ -289,7 +293,7 @@
   <footer class="footer">
     <img src="/static/img/gc-mark-dark.svg" alt="" width="28" height="28">
     <p><strong class="display-sm">Checkmate</strong> <span class="muted">· Strategic SRE incident intelligence</span></p>
-    <p class="mono muted">gke-autopilot-us-central1</p>
+    <p class="mono muted">Prometheus · Alertmanager · Loki</p>
   </footer>
 </body>
 </html>

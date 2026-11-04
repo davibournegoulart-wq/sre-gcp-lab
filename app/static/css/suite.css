@@ -211,16 +211,16 @@ button, input { font: inherit; color: inherit; }
 }
 .command code { font-size: 12px; overflow-x: auto; white-space: nowrap; }
 
-/* Regions */
-.regions { display: grid; gap: 4px; }
-.region { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; padding: 10px 0; border-bottom: 1px solid var(--hairline); }
-.region:last-child { border-bottom: 0; }
-.region-name { font-weight: 500; font-size: 14px; }
-.region-id { font-size: 12px; color: var(--steel); }
-.region-ping { font-size: 14px; text-align: right; }
-.region-bar { grid-column: 1 / -1; height: 4px; border-radius: 2px; background: var(--fill-hover); overflow: hidden; }
-.region-bar span { display: block; height: 100%; background: var(--paper); border-radius: 2px; transition: width 0.6s var(--ease); }
-.region[data-tone="warn"] .region-bar span { background: var(--amber); }
+/* Alerts feed */
+.feed { display: grid; gap: 8px; margin-top: 8px; }
+.feed-gap { margin-top: 18px; }
+.feed li { padding: 10px 12px; border-radius: var(--radius-md); background: var(--midnight); border: 1px solid var(--hairline); display: grid; gap: 2px; }
+.feed li[data-tone="alert"] { border-color: rgba(255, 59, 92, 0.45); }
+.feed li[data-tone="warn"] { border-color: rgba(255, 176, 32, 0.35); }
+.feed .feed-title { font-weight: 600; font-size: 14px; }
+.feed .feed-meta { font-size: 12px; color: var(--steel); }
+.feed .feed-text { font-size: 13px; color: var(--steel); overflow-wrap: anywhere; }
+.feed .feed-empty { color: var(--steel); font-size: 13px; background: transparent; border-style: dashed; }
 
 /* Tables */
 .table-wrap { overflow-x: auto; margin: 0 -4px; }
