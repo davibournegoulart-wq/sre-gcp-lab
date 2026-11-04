@@ -5,16 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Global Checkmate — SRE Mission Control & Cyber Command</title>
     <link rel="icon" type="image/svg+xml" href="/static/img/global-checkmate-symbol-amber.svg">
-    <!-- Tailwind CSS -->
+    
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- Chart.js -->
+    <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Apple & Tactical Fonts -->
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
     
     <script>
         tailwind.config = {
@@ -23,66 +24,77 @@
                 extend: {
                     colors: {
                         soc: {
-                            deep: '#040711',       // Pentagon / SOC Deep Room Black-Blue
-                            navy: '#080F1E',       // Cold Cyber Navy
-                            surface: '#0D172B',    // Console Desk Surface
-                            border: 'rgba(56, 189, 248, 0.12)',
+                            deep: '#02050E',       // Ultra Deep Void Black-Navy (Pentagon/War Room)
+                            navy: '#060B18',       // Cold Cyber Navy Console
+                            surface: '#0A1224',    // Panel Surface
+                            card: '#0D172E',       // Frosted Card
+                            border: 'rgba(56, 189, 248, 0.14)',
                             cyan: '#38BDF8',       // Cyber Telemetry Cyan
-                            amber: '#FFB020',      // Checkmate Signature Tactical Accent
+                            amber: '#FFB020',      // Global Checkmate Focal Tactical Accent
                             crimson: '#EF4444',    // Critical Live Incident Breach
                             emerald: '#10B981',    // Nominal Defense Baseline
-                            text: '#E2E8F0',
+                            text: '#F1F5F9',
                             muted: '#64748B'
                         }
                     },
                     fontFamily: {
                         sans: ['-apple-system', 'BlinkMacSystemFont', 'Inter', 'sans-serif'],
-                        mono: ['JetBrains Mono', 'SF Mono', 'monospace']
+                        mono: ['JetBrains Mono', 'SF Mono', 'Menlo', 'monospace']
                     }
                 }
             }
         }
     </script>
     <style>
-        /* SOC War Room Cyber Backdrop */
+        /* War Room Operations Center Backdrop */
         body {
-            background-color: #040711;
+            background-color: #02050E;
             background-image: 
-                radial-gradient(ellipse at 50% 0%, rgba(14, 165, 233, 0.08) 0%, transparent 60%),
-                radial-gradient(circle at 10% 40%, rgba(255, 176, 32, 0.03) 0%, transparent 40%),
+                radial-gradient(ellipse at 50% -10%, rgba(56, 189, 248, 0.12) 0%, transparent 65%),
+                radial-gradient(circle at 10% 40%, rgba(255, 176, 32, 0.04) 0%, transparent 45%),
+                radial-gradient(circle at 90% 70%, rgba(14, 165, 233, 0.05) 0%, transparent 45%),
                 linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
                 linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
-            background-size: 100% 100%, 100% 100%, 32px 32px, 32px 32px;
+            background-size: 100% 100%, 100% 100%, 100% 100%, 28px 28px, 28px 28px;
             font-feature-settings: "cv02", "cv03", "cv04", "cv11";
         }
 
-        /* Apple Glass with Cyber Command Specular Glow */
+        /* Apple Pro Frosted Glass */
         .soc-glass {
-            background: rgba(8, 15, 30, 0.72);
+            background: rgba(6, 11, 24, 0.78);
             backdrop-filter: blur(28px) saturate(190%);
             -webkit-backdrop-filter: blur(28px) saturate(190%);
-            border: 1px solid rgba(56, 189, 248, 0.15);
-            box-shadow: 0 16px 48px -12px rgba(0, 0, 0, 0.8), inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.85), inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
         }
 
         .soc-card {
-            background: rgba(13, 23, 43, 0.6);
+            background: rgba(10, 18, 36, 0.65);
             backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.07);
             border-radius: 18px;
             transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
         }
         .soc-card:hover {
-            background: rgba(18, 31, 58, 0.75);
+            background: rgba(14, 25, 48, 0.82);
             border-color: rgba(255, 176, 32, 0.35);
         }
 
-        /* Tactical Amber Focus & Glows */
+        /* Tactical Specular Glows */
         .amber-radar-glow {
-            box-shadow: 0 0 28px -3px rgba(255, 176, 32, 0.3);
+            box-shadow: 0 0 28px -2px rgba(255, 176, 32, 0.32);
         }
         .cyan-radar-glow {
-            box-shadow: 0 0 28px -3px rgba(56, 189, 248, 0.25);
+            box-shadow: 0 0 28px -2px rgba(56, 189, 248, 0.28);
+        }
+        .crimson-alert-glow {
+            box-shadow: 0 0 35px 2px rgba(239, 68, 68, 0.38);
+            animation: pulse-breach 1.8s infinite;
+        }
+
+        @keyframes pulse-breach {
+            0%, 100% { border-color: rgba(239, 68, 68, 0.4); }
+            50% { border-color: rgba(239, 68, 68, 0.9); }
         }
 
         /* Tabular Numbers */
@@ -92,46 +104,75 @@
             letter-spacing: -0.02em;
         }
 
-        /* Animated Pulse Ping */
-        @keyframes radar-pulse {
-            0% { transform: scale(0.95); opacity: 0.8; }
-            50% { transform: scale(1.15); opacity: 0.4; }
-            100% { transform: scale(0.95); opacity: 0.8; }
+        /* Radar Beam Sweep */
+        @keyframes radar-sweep {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
         }
-        .radar-ping {
-            animation: radar-pulse 3s infinite ease-in-out;
+        .animate-radar-sweep {
+            animation: radar-sweep 12s linear infinite;
+            transform-origin: center;
         }
 
-        /* Tactile Apple Click */
+        /* Curved Arcs Flow */
+        @keyframes dash {
+            to { stroke-dashoffset: -100; }
+        }
+        .telemetry-flow {
+            stroke-dasharray: 6, 6;
+            animation: dash 2.5s linear infinite;
+        }
+
+        /* Apple Click Feel */
         .apple-click {
-            transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+            transition: transform 0.12s ease, filter 0.12s ease;
         }
         .apple-click:active {
             transform: scale(0.97);
+            filter: brightness(0.92);
+        }
+
+        /* Custom Scrollbar for Terminals */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(2, 5, 14, 0.5);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.12);
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 176, 32, 0.4);
         }
     </style>
 </head>
 <body class="text-slate-100 min-h-screen font-sans antialiased selection:bg-[#FFB020] selection:text-black">
 
-    <div class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-5 space-y-6">
+    <div class="max-w-[1580px] mx-auto px-4 sm:px-6 lg:px-8 py-5 space-y-6">
 
-        <!-- Top Navigation Bar (War Room Cyber Command Toolbar) -->
-        <header class="soc-glass rounded-2xl px-6 h-16 flex items-center justify-between">
+        <!-- ========================================== -->
+        <!-- 1. TOP COMMAND BAR (macOS Glass Toolbar)   -->
+        <!-- ========================================== -->
+        <header class="soc-glass rounded-2xl px-6 h-18 py-3 flex flex-wrap items-center justify-between gap-4">
             
-            <!-- Left: macOS Window Controls & Global Brand -->
+            <!-- Left: macOS Traffic Lights & Global Checkmate Brand -->
             <div class="flex items-center space-x-5">
+                <!-- macOS Traffic Lights -->
                 <div class="flex items-center space-x-2">
-                    <span class="w-3 h-3 rounded-full bg-[#FF5F56] border border-[#E0443E]/50 cursor-pointer"></span>
-                    <span class="w-3 h-3 rounded-full bg-[#FFBD2E] border border-[#DEA123]/50 cursor-pointer"></span>
-                    <span class="w-3 h-3 rounded-full bg-[#27C93F] border border-[#1AAB29]/50 cursor-pointer"></span>
+                    <span class="w-3 h-3 rounded-full bg-[#FF5F56] border border-[#E0443E]/50 cursor-pointer hover:opacity-80 transition" title="Close Session"></span>
+                    <span class="w-3 h-3 rounded-full bg-[#FFBD2E] border border-[#DEA123]/50 cursor-pointer hover:opacity-80 transition" title="Minimize Console"></span>
+                    <span class="w-3 h-3 rounded-full bg-[#27C93F] border border-[#1AAB29]/50 cursor-pointer hover:opacity-80 transition" title="Toggle Fullscreen" onclick="toggleFullscreen()"></span>
                 </div>
 
-                <div class="h-4 w-[1px] bg-white/10"></div>
+                <div class="h-5 w-[1px] bg-white/10 hidden sm:block"></div>
 
+                <!-- Global Checkmate Official Tactical Brand Lockup -->
                 <div class="flex items-center space-x-3.5">
-                    <!-- Global Checkmate Official Tactical Mark -->
-                    <div class="w-9 h-9 rounded-xl bg-[#080F1E] border border-[#FFB020]/40 flex items-center justify-center shadow-[0_0_18px_rgba(255,176,32,0.22)] relative group cursor-pointer transition-transform duration-200 hover:scale-105" title="Global Checkmate">
-                        <svg class="w-6 h-6 transition-all duration-300 group-hover:drop-shadow-[0_0_8px_#FFB020]" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <div class="w-10 h-10 rounded-xl bg-[#080F1E] border border-[#FFB020]/40 flex items-center justify-center shadow-[0_0_18px_rgba(255,176,32,0.25)] relative group cursor-pointer transition-transform duration-200 hover:scale-105" title="Global Checkmate">
+                        <svg class="w-7 h-7 transition-all duration-300 group-hover:drop-shadow-[0_0_10px_#FFB020]" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <!-- Reticle Ring -->
                             <circle cx="512" cy="512" r="330" stroke="#F1F5F9" stroke-width="26" stroke-opacity="0.9"/>
                             <!-- Crosshair Ticks (12, 6, 9, 3) -->
@@ -145,396 +186,685 @@
                             <rect x="331" y="571" width="122" height="122" rx="18" fill="#F1F5F9" fill-opacity="0.9"/>
                             <rect x="571" y="571" width="122" height="122" rx="18" fill="#F1F5F9" fill-opacity="0.9"/>
                             <!-- Focal Checkmate Center Target (Amber #FFB020) -->
-                            <rect x="451" y="451" width="122" height="122" rx="18" fill="#FFB020" style="filter: drop-shadow(0 0 10px rgba(255, 176, 32, 0.85));"/>
+                            <rect x="451" y="451" width="122" height="122" rx="18" fill="#FFB020" style="filter: drop-shadow(0 0 10px rgba(255, 176, 32, 0.9));"/>
                         </svg>
                     </div>
                     <div>
                         <div class="flex items-center space-x-2">
-                            <span class="text-[13px] font-bold tracking-wider text-white">GLOBAL CHECKMATE</span>
+                            <span class="text-sm font-bold tracking-wider text-white">GLOBAL CHECKMATE</span>
                             <span class="text-xs font-mono font-bold text-[#FFB020]">MISSION CONTROL</span>
                             <span class="px-2 py-0.5 text-[10px] font-mono font-medium rounded-full bg-cyan-950/60 text-cyan-300 border border-cyan-800/40">GCP SOC 24/7</span>
                         </div>
-                        <p class="text-[10px] text-slate-400 font-mono tracking-tight">// STRATEGIC SRE OBSERVABILITY &amp; INCIDENT TRIAGE</p>
+                        <p class="text-[10px] text-slate-400 font-mono tracking-tight">// STRATEGIC SRE OBSERVABILITY &amp; INCIDENT WAR ROOM</p>
                     </div>
                 </div>
             </div>
 
-            <!-- Center: Status Pill (Global Defense Baseline) -->
-            <div id="system-status-pill" class="flex items-center space-x-2.5 px-4 py-1.5 rounded-full bg-emerald-950/30 border border-emerald-500/30 shadow-sm">
-                <span id="system-status-dot" class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                <span id="system-status-text" class="text-xs font-mono font-medium text-emerald-400">DEFCON 5 · GLOBAL SYSTEM NOMINAL</span>
+            <!-- Center: DEFCON Threat Level Pill -->
+            <div id="system-status-pill" class="flex items-center space-x-2.5 px-4 py-1.5 rounded-full bg-emerald-950/40 border border-emerald-500/30 shadow-sm transition-all duration-300">
+                <span id="system-status-dot" class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span id="system-status-text" class="text-xs font-mono font-medium text-emerald-300">DEFCON 5 · ALL SYSTEMS NOMINAL</span>
             </div>
 
-            <!-- Right Fast Controls: Apple-style frosted pills -->
-            <div class="flex items-center space-x-2">
-                <a href="http://localhost:3030" target="_blank" class="apple-click px-3.5 py-1.5 text-xs font-medium text-slate-300 hover:text-white bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 rounded-full transition flex items-center space-x-1.5">
+            <!-- Right: Real-time SRE Clock, Sound Toggle & External Tools -->
+            <div class="flex items-center space-x-2.5">
+                <!-- Clock -->
+                <div class="hidden xl:flex items-center space-x-2 px-3 py-1.5 rounded-xl bg-white/[0.03] border border-white/10 font-mono text-xs text-slate-300">
+                    <i data-lucide="clock" class="w-3.5 h-3.5 text-cyan-400"></i>
+                    <span id="live-utc-clock" class="tnum text-[#FFB020]">00:00:00.000 UTC</span>
+                </div>
+
+                <!-- Sound FX Toggle -->
+                <button id="btn-sound-toggle" onclick="toggleAudio()" class="apple-click p-2 text-slate-400 hover:text-[#FFB020] bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 rounded-xl transition" title="Toggle Tactical Audio FX">
+                    <i data-lucide="volume-2" id="sound-icon" class="w-4 h-4 text-[#FFB020]"></i>
+                </button>
+
+                <!-- External Launchers (Pill Links) -->
+                <a href="http://localhost:3030" target="_blank" class="apple-click px-3 py-1.5 text-xs font-medium text-slate-300 hover:text-white bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 rounded-xl transition flex items-center space-x-1.5">
                     <i data-lucide="layout-dashboard" class="w-3.5 h-3.5 text-[#FFB020]"></i>
                     <span>Grafana</span>
                 </a>
-                <a href="http://localhost:9090" target="_blank" class="apple-click px-3.5 py-1.5 text-xs font-medium text-slate-300 hover:text-white bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 rounded-full transition flex items-center space-x-1.5">
+                <a href="http://localhost:9090" target="_blank" class="apple-click px-3 py-1.5 text-xs font-medium text-slate-300 hover:text-white bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 rounded-xl transition flex items-center space-x-1.5">
                     <i data-lucide="activity" class="w-3.5 h-3.5 text-cyan-400"></i>
                     <span>Prometheus</span>
                 </a>
-                <a href="https://github.com/davibournegoulart-wq/sre-gcp-lab" target="_blank" class="apple-click px-3.5 py-1.5 text-xs font-medium text-slate-300 hover:text-white bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 rounded-full transition flex items-center space-x-1.5">
-                    <i data-lucide="git-branch" class="w-3.5 h-3.5 text-slate-400"></i>
-                    <span>Repo</span>
+                <a href="http://localhost:9093" target="_blank" class="apple-click px-3 py-1.5 text-xs font-medium text-slate-300 hover:text-white bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 rounded-xl transition flex items-center space-x-1.5">
+                    <i data-lucide="bell" class="w-3.5 h-3.5 text-amber-400"></i>
+                    <span>Alerts</span>
+                </a>
+                <a href="https://github.com/davibournegoulart-wq/sre-gcp-lab" target="_blank" class="apple-click px-3 py-1.5 text-xs font-medium text-slate-300 hover:text-white bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 rounded-xl transition flex items-center space-x-1.5">
+                    <i data-lucide="github" class="w-3.5 h-3.5 text-slate-300"></i>
+                    <span class="hidden md:inline">GitHub</span>
                 </a>
             </div>
-        </div>
+        </header>
 
-        <!-- Panoramic Global Threat & Edge Map Wall (The Core Centerpiece) -->
-        <div class="soc-glass rounded-3xl p-6 relative overflow-hidden border border-cyan-500/20">
-            <div class="flex items-center justify-between pb-3 border-b border-white/[0.06] mb-4">
-                <div class="flex items-center space-x-2">
-                    <i data-lucide="globe-2" class="w-4 h-4 text-[#FFB020]"></i>
-                    <h2 class="text-xs font-semibold tracking-wider text-white uppercase font-mono">Painel Panorâmico de Nós Globais (GCP Edge & Cloud SQL)</h2>
+        <!-- ========================================== -->
+        <!-- 2. PANORAMIC WAR ROOM GLOBAL EDGE SCREEN   -->
+        <!-- ========================================== -->
+        <div class="soc-glass rounded-2xl p-5 relative overflow-hidden border border-cyan-500/20 cyan-radar-glow">
+            
+            <!-- Header of Panoramic Screen -->
+            <div class="flex items-center justify-between pb-3 mb-2 border-b border-white/[0.06] relative z-10">
+                <div class="flex items-center space-x-3">
+                    <div class="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-ping"></div>
+                    <span class="text-xs font-mono font-bold tracking-widest text-white uppercase">GLOBAL CLOUD EDGE MESH &amp; INGRESS TELEMETRY</span>
+                    <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-cyan-950/80 text-cyan-300 border border-cyan-800/40">5 ACTIVE REGIONS</span>
                 </div>
-                <div class="flex items-center space-x-4 text-xs font-mono text-slate-400">
-                    <span class="flex items-center space-x-1.5">
-                        <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-                        <span>Nominal (0 desvios)</span>
-                    </span>
-                    <span class="flex items-center space-x-1.5">
+                <div class="flex items-center space-x-6 text-[11px] font-mono text-slate-400">
+                    <div class="flex items-center space-x-2">
+                        <span class="w-2 h-2 rounded-full bg-[#10B981]"></span>
+                        <span>Nominal Transit (&lt;100ms)</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
                         <span class="w-2 h-2 rounded-full bg-[#FFB020]"></span>
-                        <span>Checkmate Primary</span>
-                    </span>
-                    <span class="flex items-center space-x-1.5">
-                        <span class="w-2 h-2 rounded-full bg-red-400"></span>
-                        <span>SLO Breach</span>
-                    </span>
+                        <span>Active Telemetry Arc</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <span class="w-2 h-2 rounded-full bg-[#EF4444]"></span>
+                        <span>Breach / Latency Alert</span>
+                    </div>
                 </div>
             </div>
 
-            <!-- Stylized World Map with Glowing Telemetry Pins -->
-            <div class="relative w-full h-[260px] rounded-2xl bg-[#03060E] border border-white/[0.06] overflow-hidden flex items-center justify-center">
-                <!-- SVG World Vector Blueprint -->
-                <svg viewBox="0 0 1000 480" class="w-full h-full opacity-35">
-                    <path d="M150,120 Q180,110 210,130 Q250,150 260,200 Q280,240 230,280 Q190,300 160,270 Q130,220 140,160 Z" fill="#1E293B"/>
-                    <path d="M260,300 Q310,320 330,380 Q340,430 300,460 Q260,440 250,380 Z" fill="#1E293B"/>
-                    <path d="M480,100 Q550,90 580,140 Q600,190 550,230 Q510,240 480,210 Q450,170 470,120 Z" fill="#1E293B"/>
-                    <path d="M480,240 Q550,250 560,320 Q550,400 500,430 Q460,380 470,300 Z" fill="#1E293B"/>
-                    <path d="M620,90 Q750,70 820,130 Q880,190 850,260 Q790,280 720,240 Q650,210 630,150 Z" fill="#1E293B"/>
-                    <path d="M780,320 Q860,310 880,360 Q870,410 810,410 Q770,380 780,330 Z" fill="#1E293B"/>
-                    <!-- Data Arcs -->
-                    <path d="M 280 340 Q 500 160 520 150" fill="none" stroke="rgba(255, 176, 32, 0.4)" stroke-width="1.5" stroke-dasharray="4,4"/>
-                    <path d="M 520 150 Q 680 120 780 180" fill="none" stroke="rgba(56, 189, 248, 0.4)" stroke-width="1.5" stroke-dasharray="4,4"/>
-                    <path d="M 280 340 Q 230 180 210 160" fill="none" stroke="rgba(56, 189, 248, 0.4)" stroke-width="1.5" stroke-dasharray="4,4"/>
+            <!-- Panoramic Interactive World Map Canvas (SVG Vector + Telemetry Flow) -->
+            <div class="relative w-full h-[280px] sm:h-[320px] rounded-xl bg-[#040814]/90 border border-white/[0.05] overflow-hidden flex items-center justify-center">
+                
+                <!-- Tactical Radar Scan Overlay -->
+                <div class="absolute inset-0 pointer-events-none opacity-20">
+                    <div class="w-full h-full bg-[radial-gradient(ellipse_at_center,rgba(56,189,248,0.15)_0%,transparent_70%)]"></div>
+                </div>
+
+                <!-- World Vector Map with Dotted Matrix Aesthetic -->
+                <svg viewBox="0 0 1000 440" class="w-full h-full opacity-90 select-none">
+                    <defs>
+                        <!-- Glow Filters -->
+                        <filter id="cyanGlow" x="-20%" y="-20%" width="140%" height="140%">
+                            <feGaussianBlur stdDeviation="3" result="blur" />
+                            <feMerge>
+                                <feMergeNode in="blur" />
+                                <feMergeNode in="SourceGraphic" />
+                            </feMerge>
+                        </filter>
+                        <filter id="amberGlow" x="-20%" y="-20%" width="140%" height="140%">
+                            <feGaussianBlur stdDeviation="4" result="blur" />
+                            <feMerge>
+                                <feMergeNode in="blur" />
+                                <feMergeNode in="SourceGraphic" />
+                            </feMerge>
+                        </filter>
+                    </defs>
+
+                    <!-- World Land Contours (Stylized Dotted Vector Paths) -->
+                    <g fill="none" stroke="rgba(56, 189, 248, 0.18)" stroke-width="1.2">
+                        <!-- North America -->
+                        <path d="M 120,70 L 220,60 L 310,90 L 330,140 L 290,190 L 230,220 L 210,260 L 170,230 L 130,170 Z" fill="rgba(56, 189, 248, 0.03)" />
+                        <!-- South America -->
+                        <path d="M 270,260 L 360,280 L 380,360 L 320,410 L 280,350 Z" fill="rgba(56, 189, 248, 0.03)" />
+                        <!-- Europe -->
+                        <path d="M 470,80 L 580,70 L 590,140 L 510,160 L 460,120 Z" fill="rgba(56, 189, 248, 0.03)" />
+                        <!-- Africa -->
+                        <path d="M 480,170 L 590,170 L 620,260 L 560,360 L 490,290 Z" fill="rgba(56, 189, 248, 0.03)" />
+                        <!-- Asia -->
+                        <path d="M 600,60 L 820,70 L 890,160 L 840,240 L 720,230 L 630,160 Z" fill="rgba(56, 189, 248, 0.03)" />
+                        <!-- Australia / Oceania -->
+                        <path d="M 780,290 L 880,280 L 870,360 L 780,350 Z" fill="rgba(56, 189, 248, 0.03)" />
+                    </g>
+
+                    <!-- Tactical Telemetry Arcs (Connecting Primary us-central1 (230, 160) to edge nodes) -->
+                    <g id="telemetry-arcs" fill="none">
+                        <!-- us-central1 -> us-east4 (285, 165) -->
+                        <path d="M 230,160 Q 255,140 285,165" stroke="#38BDF8" stroke-width="1.8" class="telemetry-flow" opacity="0.8"/>
+                        <!-- us-central1 -> europe-west3 (530, 125) -->
+                        <path d="M 230,160 Q 380,60 530,125" stroke="#FFB020" stroke-width="2" class="telemetry-flow" opacity="0.9" filter="url(#amberGlow)"/>
+                        <!-- us-central1 -> southamerica-east1 (340, 340) -->
+                        <path d="M 230,160 Q 280,250 340,340" stroke="#38BDF8" stroke-width="1.8" class="telemetry-flow" opacity="0.75"/>
+                        <!-- us-central1 -> asia-east1 (830, 195) -->
+                        <path d="M 230,160 Q 530,40 830,195" stroke="#38BDF8" stroke-width="1.8" class="telemetry-flow" opacity="0.85"/>
+                    </g>
+
+                    <!-- Cloud Edge Node Markers -->
+                    <!-- 1. us-central1 (Iowa - GKE Autopilot Master) -->
+                    <g transform="translate(230, 160)" class="cursor-pointer" onclick="inspectNode('us-central1')">
+                        <circle r="14" fill="none" stroke="#FFB020" stroke-width="1.5" opacity="0.4" class="animate-ping" />
+                        <circle r="7" fill="#040814" stroke="#FFB020" stroke-width="2.5" filter="url(#amberGlow)" />
+                        <text x="12" y="4" font-family="JetBrains Mono" font-size="10" font-weight="bold" fill="#FFB020">us-central1 (GKE Master)</text>
+                    </g>
+
+                    <!-- 2. us-east4 (Ashburn) -->
+                    <g transform="translate(285, 165)" class="cursor-pointer" onclick="inspectNode('us-east4')">
+                        <circle r="5" fill="#040814" stroke="#38BDF8" stroke-width="2" />
+                        <text x="10" y="4" font-family="JetBrains Mono" font-size="9" fill="#94A3B8">us-east4 (Ashburn)</text>
+                    </g>
+
+                    <!-- 3. europe-west3 (Frankfurt) -->
+                    <g transform="translate(530, 125)" class="cursor-pointer" onclick="inspectNode('europe-west3')">
+                        <circle r="9" fill="none" stroke="#38BDF8" stroke-width="1" opacity="0.5" class="animate-ping" />
+                        <circle r="6" fill="#040814" stroke="#38BDF8" stroke-width="2" />
+                        <text x="11" y="4" font-family="JetBrains Mono" font-size="9" fill="#94A3B8">europe-west3 (Frankfurt)</text>
+                    </g>
+
+                    <!-- 4. southamerica-east1 (São Paulo) -->
+                    <g transform="translate(340, 340)" class="cursor-pointer" onclick="inspectNode('southamerica-east1')">
+                        <circle r="5" fill="#040814" stroke="#38BDF8" stroke-width="2" />
+                        <text x="10" y="4" font-family="JetBrains Mono" font-size="9" fill="#94A3B8">southamerica-east1 (SP)</text>
+                    </g>
+
+                    <!-- 5. asia-east1 (Taiwan) -->
+                    <g transform="translate(830, 195)" class="cursor-pointer" onclick="inspectNode('asia-east1')">
+                        <circle r="5" fill="#040814" stroke="#38BDF8" stroke-width="2" />
+                        <text x="-120" y="4" font-family="JetBrains Mono" font-size="9" fill="#94A3B8">asia-east1 (Taiwan)</text>
+                    </g>
                 </svg>
 
-                <!-- Glowing Edge Nodes (Overlay Pins) -->
-                <!-- 1. South America (São Paulo - Primary Hub) -->
-                <div class="absolute left-[28%] top-[70%] -translate-x-1/2 -translate-y-1/2 group cursor-pointer" id="node-sa">
-                    <div class="relative flex items-center justify-center">
-                        <span class="w-5 h-5 rounded-full bg-[#FFB020]/25 absolute animate-ping"></span>
-                        <span class="w-3 h-3 rounded-full bg-[#FFB020] border-2 border-white shadow-lg shadow-[#FFB020]/80"></span>
-                    </div>
-                    <div class="mt-1.5 px-2.5 py-1 rounded bg-[#0A101D]/90 border border-[#FFB020]/40 text-[10px] font-mono text-center backdrop-blur-md">
-                        <div class="text-[#FFB020] font-bold">southamerica-east1</div>
-                        <div class="text-slate-300">São Paulo · <span id="node-sa-lat">4.2ms</span></div>
-                    </div>
+                <!-- Floating Corner Telemetry HUD -->
+                <div class="absolute bottom-3 left-4 flex items-center space-x-3 bg-black/70 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/10 text-[10px] font-mono">
+                    <span class="text-slate-400">INGRESS MESH:</span>
+                    <span class="text-emerald-400 font-bold">100% HEALTHY</span>
+                    <span class="text-slate-600">|</span>
+                    <span class="text-slate-400">PACKET DROP:</span>
+                    <span class="text-white font-bold">0.00%</span>
+                    <span class="text-slate-600">|</span>
+                    <span class="text-slate-400">AVG TRANSIT:</span>
+                    <span id="hud-avg-ping" class="text-[#FFB020] font-bold">38.4ms</span>
                 </div>
 
-                <!-- 2. US East (N. Virginia) -->
-                <div class="absolute left-[21%] top-[34%] -translate-x-1/2 -translate-y-1/2 group cursor-pointer">
-                    <div class="relative flex items-center justify-center">
-                        <span class="w-2.5 h-2.5 rounded-full bg-cyan-400 border border-white"></span>
-                    </div>
-                    <div class="mt-1 px-2 py-0.5 rounded bg-[#0A101D]/90 border border-white/10 text-[9px] font-mono text-center">
-                        <span class="text-cyan-300">us-east4</span> · 112ms
-                    </div>
-                </div>
-
-                <!-- 3. Europe (Frankfurt) -->
-                <div class="absolute left-[52%] top-[32%] -translate-x-1/2 -translate-y-1/2 group cursor-pointer">
-                    <div class="relative flex items-center justify-center">
-                        <span class="w-2.5 h-2.5 rounded-full bg-cyan-400 border border-white"></span>
-                    </div>
-                    <div class="mt-1 px-2 py-0.5 rounded bg-[#0A101D]/90 border border-white/10 text-[9px] font-mono text-center">
-                        <span class="text-cyan-300">europe-west3</span> · 168ms
-                    </div>
-                </div>
-
-                <!-- 4. Asia (Tokyo) -->
-                <div class="absolute left-[79%] top-[38%] -translate-x-1/2 -translate-y-1/2 group cursor-pointer">
-                    <div class="relative flex items-center justify-center">
-                        <span class="w-2.5 h-2.5 rounded-full bg-cyan-400 border border-white"></span>
-                    </div>
-                    <div class="mt-1 px-2 py-0.5 rounded bg-[#0A101D]/90 border border-white/10 text-[9px] font-mono text-center">
-                        <span class="text-cyan-300">asia-northeast1</span> · 245ms
-                    </div>
+                <div class="absolute top-3 right-4 flex items-center space-x-2 bg-black/70 backdrop-blur-md px-3 py-1 rounded-lg border border-white/10 text-[10px] font-mono text-slate-300">
+                    <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+                    <span>OP-CENTER: PENTAGON 24/7 ACTIVE</span>
                 </div>
             </div>
         </div>
 
-        <!-- Telemetry Data Cards (Activity Monitor / Cyber Grid) -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-            
-            <!-- 1. Availability SLI -->
-            <div class="soc-card p-5 relative overflow-hidden group">
-                <div class="flex items-center justify-between text-xs text-slate-400 font-mono">
-                    <span>AVAILABILITY SLI</span>
-                    <span class="text-emerald-400 text-[11px]">SLO: 99.50%</span>
-                </div>
-                <div class="mt-2.5 flex items-baseline justify-between">
-                    <span id="metric-availability" class="text-3xl font-semibold tracking-tight text-white font-mono tnum">100.00%</span>
-                    <span class="text-[11px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Nominal</span>
-                </div>
-                <div class="mt-3.5 w-full bg-white/[0.06] h-1.5 rounded-full overflow-hidden">
-                    <div id="bar-availability" class="bg-gradient-to-r from-emerald-500 to-emerald-400 h-full transition-all duration-700" style="width: 100%"></div>
-                </div>
-            </div>
+        <!-- ========================================== -->
+        <!-- 3. EXECUTIVE GOLDEN SIGNALS & ACTIVITY HUD -->
+        <!-- ========================================== -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
 
-            <!-- 2. Error Budget Remaining -->
-            <div class="soc-card p-5 relative overflow-hidden group">
-                <div class="flex items-center justify-between text-xs text-slate-400 font-mono">
-                    <span>ERROR BUDGET</span>
-                    <span id="metric-burn-mult" class="text-[11px] font-mono text-[#FFB020]">Burn: 0.0x</span>
+            <!-- Card 1: Availability SLO -->
+            <div class="soc-card p-5 relative overflow-hidden">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-mono text-slate-400 uppercase tracking-wider">Availability SLO (30d)</span>
+                    <span id="avail-status-tag" class="px-2 py-0.5 rounded text-[10px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">TARGET 99.9%</span>
                 </div>
-                <div class="mt-2.5 flex items-baseline justify-between">
-                    <span id="metric-budget" class="text-3xl font-semibold tracking-tight text-[#FFB020] font-mono tnum">100.0%</span>
-                    <span class="text-[11px] font-mono px-2 py-0.5 rounded-full bg-[#FFB020]/10 text-[#FFB020] border border-[#FFB020]/25">0.5% Orçamento</span>
-                </div>
-                <div class="mt-3.5 w-full bg-white/[0.06] h-1.5 rounded-full overflow-hidden">
-                    <div id="bar-budget" class="bg-gradient-to-r from-[#FFB020] to-[#E59D1A] h-full transition-all duration-700" style="width: 100%"></div>
-                </div>
-            </div>
-
-            <!-- 3. Throughput QPS -->
-            <div class="soc-card p-5 relative overflow-hidden group">
-                <div class="flex items-center justify-between text-xs text-slate-400 font-mono">
-                    <span>VAZÃO EM TEMPO REAL</span>
-                    <span class="text-cyan-400 text-[11px]">FastAPI Cluster</span>
-                </div>
-                <div class="mt-2.5 flex items-baseline justify-between">
-                    <span id="metric-qps" class="text-3xl font-semibold tracking-tight text-white font-mono tnum">0.0</span>
-                    <span class="text-xs text-slate-400 font-mono">req/sec</span>
-                </div>
-                <div class="mt-3.5 flex items-center justify-between text-[11px] text-slate-400 font-mono">
-                    <span>Total Atendido:</span>
-                    <span id="metric-requests-total" class="text-white font-bold tnum">0</span>
-                </div>
-            </div>
-
-            <!-- 4. Latency P95 -->
-            <div class="soc-card p-5 relative overflow-hidden group">
-                <div class="flex items-center justify-between text-xs text-slate-400 font-mono">
-                    <span>LATÊNCIA P95</span>
-                    <span class="text-slate-400 text-[11px]">&lt; 300ms SLO</span>
-                </div>
-                <div class="mt-2.5 flex items-baseline justify-between">
-                    <span id="metric-latency" class="text-3xl font-semibold tracking-tight text-white font-mono tnum">4.2 ms</span>
-                    <span class="text-[11px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Sub-5ms</span>
-                </div>
-                <div class="mt-3.5 flex items-center justify-between text-[11px] text-slate-400 font-mono">
-                    <span>P50: <strong id="metric-p50" class="text-slate-200">1.8ms</strong></span>
-                    <span>P99: <strong id="metric-p99" class="text-slate-200">12.5ms</strong></span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Tactical Control Strip (War Room Chaos Deck) -->
-        <div class="soc-glass rounded-2xl p-5 border border-white/[0.08]">
-            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                <div class="flex items-center space-x-3">
-                    <div class="w-2.5 h-2.5 rounded-full bg-[#FFB020]"></div>
+                <div class="mt-3 flex items-baseline justify-between">
                     <div>
-                        <h2 class="text-xs font-semibold tracking-wider text-white uppercase font-mono">CONSOLE DE CONTROLE DE CAOS OPERACIONAL</h2>
-                        <p class="text-xs text-slate-400">Injete perturbações controladas nos pods e banco para validar os alertas do Google SRE e a ação autônoma do bot.</p>
+                        <div id="metric-avail" class="text-3xl font-bold tracking-tight text-white tnum">99.950%</div>
+                        <p class="text-[11px] text-slate-400 mt-1">Nível de Serviço em conformidade</p>
+                    </div>
+                    <!-- Apple Watch Activity Ring SVG -->
+                    <div class="relative w-12 h-12 flex items-center justify-center">
+                        <svg class="w-12 h-12 transform -rotate-90">
+                            <circle cx="24" cy="24" r="19" stroke="rgba(255,255,255,0.08)" stroke-width="4" fill="none"/>
+                            <circle id="ring-avail" cx="24" cy="24" r="19" stroke="#10B981" stroke-width="4" fill="none" stroke-dasharray="119.38" stroke-dashoffset="1" stroke-linecap="round" class="transition-all duration-700"/>
+                        </svg>
+                        <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400 absolute"></i>
                     </div>
                 </div>
-
-                <!-- Action Pills -->
-                <div class="flex flex-wrap items-center gap-2">
-                    <button onclick="injectError(0.25)" class="apple-click px-3.5 py-1.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 text-xs font-mono font-medium flex items-center space-x-1.5">
-                        <i data-lucide="alert-octagon" class="w-3.5 h-3.5 text-red-400"></i>
-                        <span>Injetar Erros 500 (25%)</span>
-                    </button>
-                    <button onclick="injectLatency(1500)" class="apple-click px-3.5 py-1.5 rounded-xl bg-[#FFB020]/10 hover:bg-[#FFB020]/20 text-[#FFB020] border border-[#FFB020]/30 text-xs font-mono font-medium flex items-center space-x-1.5">
-                        <i data-lucide="clock" class="w-3.5 h-3.5 text-[#FFB020]"></i>
-                        <span>Injetar Latência (1.5s)</span>
-                    </button>
-                    <button id="btn-traffic" onclick="toggleContinuousTraffic()" class="apple-click px-3.5 py-1.5 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] text-slate-200 border border-white/10 text-xs font-mono font-medium flex items-center space-x-1.5">
-                        <i data-lucide="zap" class="w-3.5 h-3.5 text-cyan-400"></i>
-                        <span id="btn-traffic-label">Gerar Carga (k6)</span>
-                    </button>
-                    <button onclick="resetChaos()" class="apple-click px-3.5 py-1.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-mono font-medium flex items-center space-x-1.5">
-                        <i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i>
-                        <span>Restaurar Nominal</span>
-                    </button>
+                <div class="mt-3 pt-3 border-t border-white/[0.06] flex items-center justify-between text-[11px] font-mono text-slate-400">
+                    <span>Orçamento restante:</span>
+                    <span id="metric-budget-remaining" class="text-emerald-400 font-semibold tnum">100.0%</span>
                 </div>
             </div>
+
+            <!-- Card 2: Error Budget Multi-Window Burn Rate -->
+            <div class="soc-card p-5 relative overflow-hidden">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-mono text-slate-400 uppercase tracking-wider">Error Budget Burn Rate</span>
+                    <span id="burn-rate-tag" class="px-2 py-0.5 rounded text-[10px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">BASELINE 0.0x</span>
+                </div>
+                <div class="mt-3 flex items-baseline justify-between">
+                    <div>
+                        <div id="metric-burn-rate" class="text-3xl font-bold tracking-tight text-emerald-400 tnum">0.0<span class="text-lg text-slate-400 font-normal">x</span></div>
+                        <p class="text-[11px] text-slate-400 mt-1">Multi-Window 1h/5m (Limite: 14.4x)</p>
+                    </div>
+                    <!-- Activity Ring -->
+                    <div class="relative w-12 h-12 flex items-center justify-center">
+                        <svg class="w-12 h-12 transform -rotate-90">
+                            <circle cx="24" cy="24" r="19" stroke="rgba(255,255,255,0.08)" stroke-width="4" fill="none"/>
+                            <circle id="ring-burn" cx="24" cy="24" r="19" stroke="#10B981" stroke-width="4" fill="none" stroke-dasharray="119.38" stroke-dashoffset="119" stroke-linecap="round" class="transition-all duration-700"/>
+                        </svg>
+                        <i data-lucide="flame" class="w-4 h-4 text-emerald-400 absolute"></i>
+                    </div>
+                </div>
+                <div class="mt-3 pt-3 border-t border-white/[0.06] flex items-center justify-between text-[11px] font-mono text-slate-400">
+                    <span>Janela de alerta 1h:</span>
+                    <span id="metric-burn-1h" class="text-slate-300 font-semibold tnum">0.00% / h</span>
+                </div>
+            </div>
+
+            <!-- Card 3: Latency Percentiles (p50 / p95 / p99) -->
+            <div class="soc-card p-5 relative overflow-hidden">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-mono text-slate-400 uppercase tracking-wider">Latency p95 (SLA &lt;300ms)</span>
+                    <span id="latency-status-tag" class="px-2 py-0.5 rounded text-[10px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">OPTIMAL</span>
+                </div>
+                <div class="mt-3 flex items-baseline justify-between">
+                    <div>
+                        <div id="metric-p95" class="text-3xl font-bold tracking-tight text-[#FFB020] tnum">4.2<span class="text-lg text-slate-400 font-normal">ms</span></div>
+                        <p class="text-[11px] text-slate-400 mt-1">p50: <span id="metric-p50" class="text-slate-200">1.8ms</span> · p99: <span id="metric-p99" class="text-slate-200">12.5ms</span></p>
+                    </div>
+                    <!-- Activity Ring -->
+                    <div class="relative w-12 h-12 flex items-center justify-center">
+                        <svg class="w-12 h-12 transform -rotate-90">
+                            <circle cx="24" cy="24" r="19" stroke="rgba(255,255,255,0.08)" stroke-width="4" fill="none"/>
+                            <circle id="ring-latency" cx="24" cy="24" r="19" stroke="#FFB020" stroke-width="4" fill="none" stroke-dasharray="119.38" stroke-dashoffset="110" stroke-linecap="round" class="transition-all duration-700"/>
+                        </svg>
+                        <i data-lucide="gauge" class="w-4 h-4 text-[#FFB020] absolute"></i>
+                    </div>
+                </div>
+                <div class="mt-3 pt-3 border-t border-white/[0.06] flex items-center justify-between text-[11px] font-mono text-slate-400">
+                    <span>SLA Threshold Margin:</span>
+                    <span id="metric-latency-margin" class="text-emerald-400 font-semibold tnum">+295.8ms</span>
+                </div>
+            </div>
+
+            <!-- Card 4: Throughput & Cluster Saturation -->
+            <div class="soc-card p-5 relative overflow-hidden">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-mono text-slate-400 uppercase tracking-wider">Throughput &amp; Pod Saturation</span>
+                    <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">3 PODS SYNCED</span>
+                </div>
+                <div class="mt-3 flex items-baseline justify-between">
+                    <div>
+                        <div id="metric-rps" class="text-3xl font-bold tracking-tight text-white tnum">124 <span class="text-lg text-slate-400 font-normal">req/s</span></div>
+                        <p class="text-[11px] text-slate-400 mt-1">Total processado: <span id="metric-total-reqs" class="text-cyan-300 font-mono">1,482</span></p>
+                    </div>
+                    <!-- Activity Ring -->
+                    <div class="relative w-12 h-12 flex items-center justify-center">
+                        <svg class="w-12 h-12 transform -rotate-90">
+                            <circle cx="24" cy="24" r="19" stroke="rgba(255,255,255,0.08)" stroke-width="4" fill="none"/>
+                            <circle id="ring-cpu" cx="24" cy="24" r="19" stroke="#38BDF8" stroke-width="4" fill="none" stroke-dasharray="119.38" stroke-dashoffset="65" stroke-linecap="round" class="transition-all duration-700"/>
+                        </svg>
+                        <i data-lucide="cpu" class="w-4 h-4 text-cyan-400 absolute"></i>
+                    </div>
+                </div>
+                <div class="mt-3 pt-3 border-t border-white/[0.06] flex items-center justify-between text-[11px] font-mono text-slate-400">
+                    <span>CPU: <strong id="metric-cpu" class="text-slate-200">42%</strong></span>
+                    <span>Mem: <strong id="metric-mem" class="text-slate-200">58%</strong></span>
+                    <span>5xx: <strong id="metric-errors" class="text-emerald-400">0</strong></span>
+                </div>
+            </div>
+
         </div>
 
-        <!-- Pro Data Matrix & Live War Room -->
+        <!-- ========================================== -->
+        <!-- 4. SPLIT WAR ROOM OPERATIONS CENTER        -->
+        <!-- ========================================== -->
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-            <!-- Left: High-Density Table & Live Chart (7 cols) -->
+            <!-- Column 1 (Left 7/12): Live Telemetry Canvas & Chaos Controls -->
             <div class="lg:col-span-7 space-y-6">
-                <!-- Activity Monitor Table -->
-                <div class="soc-card p-5 overflow-hidden">
-                    <div class="flex items-center justify-between pb-3.5 border-b border-white/[0.06]">
-                        <div class="flex items-center space-x-2">
-                            <i data-lucide="cpu" class="w-4 h-4 text-[#FFB020]"></i>
-                            <h3 class="text-xs font-semibold tracking-wider uppercase text-white font-mono">Performance por Endpoint (GKE Telemetry)</h3>
+
+                <!-- Real-time Chart Console -->
+                <div class="soc-glass rounded-2xl p-6">
+                    <div class="flex items-center justify-between pb-4 border-b border-white/[0.06]">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-2.5 h-2.5 rounded-full bg-[#FFB020] animate-pulse"></div>
+                            <span class="text-xs font-mono font-bold tracking-widest text-white uppercase">LIVE DUAL-AXIS TELEMETRY STREAM</span>
+                            <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-white/[0.04] text-slate-300 border border-white/10">2s INTERVAL</span>
                         </div>
-                        <span class="text-[11px] font-mono text-cyan-400">Live Scrape (10s)</span>
+                        <div class="flex items-center space-x-2">
+                            <button onclick="setChartRange('live')" class="px-2.5 py-1 text-[11px] font-mono rounded-lg bg-[#FFB020]/20 text-[#FFB020] border border-[#FFB020]/40 font-semibold">Real-time</button>
+                            <button onclick="setChartRange('5m')" class="px-2.5 py-1 text-[11px] font-mono rounded-lg bg-white/[0.04] text-slate-400 hover:text-white border border-white/10">5m</button>
+                            <button onclick="setChartRange('15m')" class="px-2.5 py-1 text-[11px] font-mono rounded-lg bg-white/[0.04] text-slate-400 hover:text-white border border-white/10">15m</button>
+                        </div>
                     </div>
 
-                    <div class="mt-3 overflow-x-auto">
-                        <table class="w-full text-left font-mono text-xs">
-                            <thead>
-                                <tr class="text-[10px] text-slate-500 border-b border-white/[0.04] uppercase tracking-wider">
-                                    <th class="py-2.5 px-3">Rota</th>
-                                    <th class="py-2.5 px-2">Método</th>
-                                    <th class="py-2.5 px-2 text-right">P50</th>
-                                    <th class="py-2.5 px-2 text-right">P95</th>
-                                    <th class="py-2.5 px-2 text-right">Falha 5xx</th>
-                                    <th class="py-2.5 px-3 text-right">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody id="endpoints-table-body" class="divide-y divide-white/[0.03]">
-                                <tr>
-                                    <td class="py-2.5 px-3 font-semibold text-white">/api/v1/items</td>
-                                    <td class="py-2.5 px-2"><span class="px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400 text-[10px]">GET</span></td>
-                                    <td class="py-2.5 px-2 text-right tnum text-slate-300">1.8ms</td>
-                                    <td class="py-2.5 px-2 text-right tnum text-slate-300">4.2ms</td>
-                                    <td class="py-2.5 px-2 text-right tnum text-emerald-400">0.0%</td>
-                                    <td class="py-2.5 px-3 text-right"><span class="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px]">Nominal</span></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- Dual-Axis Live Chart -->
-                <div class="soc-card p-5">
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="flex items-center space-x-2">
-                            <i data-lucide="line-chart" class="w-4 h-4 text-[#FFB020]"></i>
-                            <h3 class="text-xs font-semibold tracking-wider uppercase text-white font-mono">Curvas de Vazão & Erro em Tempo Real</h3>
-                        </div>
-                        <div class="flex items-center space-x-3 text-[11px] font-mono">
-                            <span class="flex items-center space-x-1.5 text-[#FFB020]">
-                                <span class="w-2 h-2 rounded-full bg-[#FFB020]"></span>
-                                <span>Throughput (QPS)</span>
-                            </span>
-                            <span class="flex items-center space-x-1.5 text-red-400">
-                                <span class="w-2 h-2 rounded-full bg-red-400"></span>
-                                <span>Erros 5xx (%)</span>
-                            </span>
-                        </div>
-                    </div>
-                    <div class="h-60">
+                    <!-- Canvas -->
+                    <div class="mt-4 h-64 w-full">
                         <canvas id="liveTelemetryChart"></canvas>
                     </div>
+
+                    <div class="mt-4 pt-3 border-t border-white/[0.06] flex flex-wrap items-center justify-between text-xs font-mono text-slate-400 gap-2">
+                        <div class="flex items-center space-x-4">
+                            <span class="flex items-center space-x-1.5"><span class="w-2.5 h-2.5 rounded-sm bg-[#EF4444]"></span><span>Taxa de Erro 5xx (%)</span></span>
+                            <span class="flex items-center space-x-1.5"><span class="w-2.5 h-2.5 rounded-sm bg-[#FFB020]"></span><span>Latência p95 (ms)</span></span>
+                            <span class="flex items-center space-x-1.5"><span class="w-2.5 h-2.5 rounded-sm bg-[#38BDF8]"></span><span>Throughput (RPS)</span></span>
+                        </div>
+                        <div class="text-[11px] text-slate-500">
+                            Prometheus Engine: <code>http://prometheus:9090</code>
+                        </div>
+                    </div>
                 </div>
+
+                <!-- Chaos Engineering Fault Injection Deck -->
+                <div class="soc-glass rounded-2xl p-6">
+                    <div class="flex items-center justify-between pb-4 border-b border-white/[0.06]">
+                        <div class="flex items-center space-x-3">
+                            <i data-lucide="zap" class="w-4 h-4 text-[#FFB020]"></i>
+                            <span class="text-xs font-mono font-bold tracking-widest text-white uppercase">CHAOS ENGINEERING &amp; FAULT INJECTION DECK</span>
+                        </div>
+                        <span id="chaos-active-badge" class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-medium bg-emerald-950/60 text-emerald-400 border border-emerald-500/30">BASELINE NOMINAL</span>
+                    </div>
+
+                    <!-- Fault Buttons Grid -->
+                    <div class="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-3">
+                        <button onclick="injectChaos('latency', 500)" class="apple-click p-3 rounded-xl bg-white/[0.03] hover:bg-white/[0.07] border border-white/10 text-left transition group">
+                            <div class="text-xs font-semibold text-slate-200 group-hover:text-[#FFB020] flex items-center justify-between">
+                                <span>+500ms Latência</span>
+                                <i data-lucide="clock" class="w-3.5 h-3.5 text-slate-500"></i>
+                            </div>
+                            <p class="text-[10px] text-slate-400 mt-1">Degradação controlada</p>
+                        </button>
+
+                        <button onclick="injectChaos('latency', 1500)" class="apple-click p-3 rounded-xl bg-white/[0.03] hover:bg-white/[0.07] border border-amber-500/20 text-left transition group">
+                            <div class="text-xs font-semibold text-slate-200 group-hover:text-[#FFB020] flex items-center justify-between">
+                                <span>+1500ms Latência</span>
+                                <i data-lucide="alert-triangle" class="w-3.5 h-3.5 text-amber-500"></i>
+                            </div>
+                            <p class="text-[10px] text-amber-400/80 mt-1">Viola SLA (&gt;300ms)</p>
+                        </button>
+
+                        <button onclick="injectChaos('error', 0.15)" class="apple-click p-3 rounded-xl bg-white/[0.03] hover:bg-white/[0.07] border border-amber-500/20 text-left transition group">
+                            <div class="text-xs font-semibold text-slate-200 group-hover:text-amber-400 flex items-center justify-between">
+                                <span>15% Erros 5xx</span>
+                                <i data-lucide="flame" class="w-3.5 h-3.5 text-amber-500"></i>
+                            </div>
+                            <p class="text-[10px] text-amber-400/80 mt-1">Medium Burn (6.0x)</p>
+                        </button>
+
+                        <button onclick="injectChaos('error', 0.50)" class="apple-click p-3 rounded-xl bg-white/[0.03] hover:bg-red-500/10 border border-red-500/30 text-left transition group">
+                            <div class="text-xs font-semibold text-red-300 group-hover:text-red-400 flex items-center justify-between">
+                                <span>50% Erros 5xx</span>
+                                <i data-lucide="alert-octagon" class="w-3.5 h-3.5 text-red-500"></i>
+                            </div>
+                            <p class="text-[10px] text-red-400 mt-1">Fast Burn (14.4x Alerta!)</p>
+                        </button>
+
+                        <button onclick="injectChaos('circuit')" class="apple-click p-3 rounded-xl bg-white/[0.03] hover:bg-red-950/40 border border-red-500/40 text-left transition group">
+                            <div class="text-xs font-semibold text-red-400 flex items-center justify-between">
+                                <span>Trip Database Pool</span>
+                                <i data-lucide="skull" class="w-3.5 h-3.5 text-red-500"></i>
+                            </div>
+                            <p class="text-[10px] text-red-400 mt-1">Simula Cloud SQL Outage</p>
+                        </button>
+
+                        <button onclick="resetChaos()" class="apple-click p-3 rounded-xl bg-emerald-950/40 hover:bg-emerald-900/50 border border-emerald-500/40 text-left transition group">
+                            <div class="text-xs font-semibold text-emerald-300 flex items-center justify-between">
+                                <span>RESTORE SYSTEMS</span>
+                                <i data-lucide="rotate-ccw" class="w-3.5 h-3.5 text-emerald-400"></i>
+                            </div>
+                            <p class="text-[10px] text-emerald-400 mt-1">Reset baseline nominal</p>
+                        </button>
+                    </div>
+
+                    <!-- Traffic Simulator Batch Trigger -->
+                    <div class="mt-4 pt-4 border-t border-white/[0.06] flex flex-wrap items-center justify-between gap-3">
+                        <div class="flex items-center space-x-3">
+                            <button onclick="sendSimulatedTraffic(30)" class="apple-click px-4 py-2 bg-gradient-to-r from-[#FFB020] to-[#E59A10] text-black font-semibold text-xs rounded-xl shadow-[0_0_15px_rgba(255,176,32,0.3)] flex items-center space-x-2">
+                                <i data-lucide="send" class="w-3.5 h-3.5"></i>
+                                <span>Disparar Carga (30 Req)</span>
+                            </button>
+                            <button id="btn-autopilot" onclick="toggleAutopilotTraffic()" class="apple-click px-3 py-2 bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-xs font-mono text-slate-300 rounded-xl flex items-center space-x-2">
+                                <span class="w-2 h-2 rounded-full bg-slate-500" id="autopilot-dot"></span>
+                                <span id="autopilot-text">Auto-Pilot: OFF</span>
+                            </button>
+                        </div>
+                        <div id="traffic-status-msg" class="text-[11px] font-mono text-slate-400">
+                            Pronto para injetar tráfego sintético.
+                        </div>
+                    </div>
+                </div>
+
             </div>
 
-            <!-- Right: AIOps Incident Command War Room (5 cols) -->
-            <div class="lg:col-span-5">
-                <div class="soc-card p-5 h-full flex flex-col border border-white/[0.08]">
-                    <div class="flex items-center justify-between pb-3.5 border-b border-white/[0.06]">
-                        <div class="flex items-center space-x-2.5">
-                            <div class="w-2.5 h-2.5 rounded-full bg-[#FFB020] animate-ping"></div>
-                            <h3 class="text-xs font-semibold tracking-wider uppercase text-white font-mono flex items-center space-x-1.5">
-                                <i data-lucide="terminal" class="w-4 h-4 text-[#FFB020]"></i>
-                                <span>AIOPS WAR ROOM · TRIAGEM</span>
-                            </h3>
+            <!-- Column 2 (Right 5/12): AI Incident Triage War Room -->
+            <div class="lg:col-span-5 space-y-6">
+
+                <!-- AI Incident Triage Copilot Card -->
+                <div class="soc-glass rounded-2xl p-6 relative overflow-hidden">
+                    <div class="flex items-center justify-between pb-4 border-b border-white/[0.06]">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-3 h-3 rounded-full bg-[#FFB020] flex items-center justify-center">
+                                <div class="w-1.5 h-1.5 rounded-full bg-black"></div>
+                            </div>
+                            <span class="text-xs font-mono font-bold tracking-widest text-white uppercase">AI INCIDENT TRIAGE (GEMINI / CLAUDE)</span>
                         </div>
-                        <span class="text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-[#FFB020]/10 text-[#FFB020] border border-[#FFB020]/25">Gemini 1.5 Live</span>
+                        <span id="ai-agent-status" class="px-2 py-0.5 rounded text-[10px] font-mono bg-cyan-950 text-cyan-300 border border-cyan-800">AGENT ACTIVE</span>
                     </div>
 
-                    <!-- Live Incident Stream & Diagnostics Feed -->
-                    <div id="incident-feed" class="mt-4 space-y-3 flex-1 overflow-y-auto max-h-[580px] pr-1">
-                        <div class="p-4 rounded-xl bg-white/[0.02] border border-white/[0.06] text-xs space-y-2">
-                            <div class="flex items-center justify-between text-emerald-400 font-medium">
-                                <span class="flex items-center space-x-1.5">
-                                    <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i>
-                                    <span>Vigilância SOC Ativa</span>
-                                </span>
-                                <span class="text-slate-500 font-mono text-[10px]">Tempo Real</span>
+                    <!-- Active Incident Alert Banner -->
+                    <div id="incident-banner" class="mt-4 p-4 rounded-xl bg-black/40 border border-white/[0.08] transition-all duration-300">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-2.5">
+                                <span id="incident-severity-badge" class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/40">DEFCON 5 · NOMINAL</span>
+                                <span id="incident-id" class="text-xs font-mono text-slate-400">SYS-NOMINAL</span>
                             </div>
-                            <p class="text-slate-300 leading-relaxed font-mono">
-                                Todos os clusters globais em conformidade nominal. Taxa de consumo de Error Budget em 0.0x.
-                            </p>
+                            <button onclick="triggerAiTriage()" class="apple-click px-3 py-1 bg-[#FFB020]/20 hover:bg-[#FFB020]/30 text-[#FFB020] text-xs font-mono font-medium rounded-lg border border-[#FFB020]/40 flex items-center space-x-1.5">
+                                <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+                                <span>Diagnosticar IA</span>
+                            </button>
+                        </div>
+                        <h4 id="incident-title" class="text-sm font-semibold text-white mt-2">Todos os Níveis de Serviço (SLOs) em Conformidade</h4>
+                        <p id="incident-root-cause" class="text-xs text-slate-400 mt-1 leading-relaxed">Nenhuma quebra de SLO detectada no cluster GKE. Taxa de erro 0.0%, latência p95 &lt; 5ms.</p>
+                    </div>
+
+                    <!-- Structured RCA Diagnostics -->
+                    <div class="mt-4 space-y-3 font-mono text-xs">
+                        <div class="p-3 bg-white/[0.02] border border-white/[0.06] rounded-xl">
+                            <span class="text-slate-400 text-[10px] uppercase tracking-wider block">SLO Impactado &amp; Burn Rate</span>
+                            <span id="rca-impacted-slo" class="text-emerald-400 font-semibold block mt-1">Conformidade 100% · Burn Rate 0.0x</span>
+                        </div>
+
+                        <div class="p-3 bg-white/[0.02] border border-white/[0.06] rounded-xl">
+                            <span class="text-slate-400 text-[10px] uppercase tracking-wider block">Correlated Trace IDs (OpenTelemetry / Loki)</span>
+                            <div id="rca-trace-ids" class="flex flex-wrap gap-1.5 mt-1.5">
+                                <span class="px-2 py-0.5 rounded bg-cyan-950/60 text-cyan-300 border border-cyan-800/40 text-[11px]">trc-8f2a91b4</span>
+                            </div>
+                        </div>
+
+                        <div class="p-3 bg-white/[0.02] border border-white/[0.06] rounded-xl">
+                            <div class="flex items-center justify-between">
+                                <span class="text-slate-400 text-[10px] uppercase tracking-wider">Mitigação Recomendada (1-Click Runbook)</span>
+                                <span id="rca-runbook-link" class="text-[10px] text-[#FFB020]">runbooks/api-down.md</span>
+                            </div>
+                            <div class="mt-2 flex items-center justify-between p-2 bg-black/60 border border-white/10 rounded-lg">
+                                <code id="rca-command" class="text-[11px] text-slate-200 truncate mr-2">kubectl get pods -l app=sre-api -o wide</code>
+                                <button onclick="copyRcaCommand()" class="text-slate-400 hover:text-[#FFB020] p-1 transition" title="Copiar Comando">
+                                    <i data-lucide="copy" class="w-4 h-4"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
+
+                <!-- Incident History Log Strip -->
+                <div class="soc-glass rounded-2xl p-5">
+                    <div class="flex items-center justify-between pb-3 border-b border-white/[0.06]">
+                        <span class="text-xs font-mono font-bold tracking-widest text-slate-300 uppercase">INCIDENT AUDIT LOG (POST-MORTEMS)</span>
+                        <span class="text-[10px] font-mono text-slate-500">BLAMELESS CULTURE</span>
+                    </div>
+                    <div class="mt-3 space-y-2 text-xs font-mono">
+                        <div class="p-2.5 rounded-lg bg-white/[0.02] border border-white/[0.05] flex items-center justify-between">
+                            <div>
+                                <span class="text-[#FFB020]">INC-2026-11-04-01</span>
+                                <p class="text-slate-400 text-[11px]">Cloud SQL Connection Pool Starvation</p>
+                            </div>
+                            <span class="px-2 py-0.5 rounded text-[10px] bg-slate-800 text-slate-300">RESOLVED</span>
+                        </div>
+                    </div>
+                </div>
+
             </div>
 
         </div>
 
-        <!-- Bottom Segmented Tabs: Runbooks, Post-Mortem & Trace Logs -->
-        <div class="soc-card p-6">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-white/[0.06] gap-3">
-                <div class="flex items-center space-x-2">
-                    <button onclick="switchTab('runbooks')" id="tab-btn-runbooks" class="px-4 py-1.5 rounded-full text-xs font-mono font-semibold text-black bg-[#FFB020] transition apple-click">
-                        Runbooks Operacionais
-                    </button>
-                    <button onclick="switchTab('postmortem')" id="tab-btn-postmortem" class="px-4 py-1.5 rounded-full text-xs font-mono font-medium text-slate-400 hover:text-white transition apple-click">
-                        Post-Mortem (INC-01)
-                    </button>
-                    <button onclick="switchTab('logs')" id="tab-btn-logs" class="px-4 py-1.5 rounded-full text-xs font-mono font-medium text-slate-400 hover:text-white transition apple-click">
-                        Stream de Logs (Trace ID)
-                    </button>
+        <!-- ========================================== -->
+        <!-- 5. KUBERNETES POD MATRIX & ACTIVITY TABLE  -->
+        <!-- ========================================== -->
+        <div class="soc-glass rounded-2xl p-6">
+            <div class="flex items-center justify-between pb-4 border-b border-white/[0.06]">
+                <div class="flex items-center space-x-3">
+                    <i data-lucide="layers" class="w-4 h-4 text-cyan-400"></i>
+                    <span class="text-xs font-mono font-bold tracking-widest text-white uppercase">GKE AUTOPILOT POD TOPOLOGY &amp; WORKLOAD MATRIX</span>
                 </div>
-                <span class="text-xs text-slate-500 font-mono">Padrões Google SRE & Incident Response ITIL</span>
+                <div class="flex items-center space-x-3 text-xs font-mono text-slate-400">
+                    <span>Cluster: <code>sre-autopilot-us-central1</code></span>
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                    <span>HPA: 3/10 Replicas</span>
+                </div>
             </div>
 
-            <!-- Tab 1: Runbooks Content -->
-            <div id="tab-runbooks" class="mt-5 grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div class="p-4 rounded-xl bg-white/[0.02] border border-white/[0.06] hover:border-red-500/30 transition">
-                    <div class="flex items-center justify-between text-xs font-mono font-medium text-red-400">
-                        <span>high-error-rate.md</span>
-                        <span class="px-2 py-0.5 rounded-full bg-red-500/10 text-red-400 text-[10px]">P1 Crítico</span>
+            <div class="mt-4 overflow-x-auto">
+                <table class="w-full text-left text-xs font-mono">
+                    <thead>
+                        <tr class="border-b border-white/[0.08] text-slate-400 text-[11px]">
+                            <th class="py-2.5 px-3">POD INSTANCE</th>
+                            <th class="py-2.5 px-3">ZONE</th>
+                            <th class="py-2.5 px-3">STATUS</th>
+                            <th class="py-2.5 px-3">CPU (m)</th>
+                            <th class="py-2.5 px-3">MEMORY</th>
+                            <th class="py-2.5 px-3">RESTARTS</th>
+                            <th class="py-2.5 px-3">p95 LATENCY</th>
+                            <th class="py-2.5 px-3 text-right">ACTION</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pod-matrix-tbody" class="divide-y divide-white/[0.04]">
+                        <tr class="hover:bg-white/[0.02] transition">
+                            <td class="py-3 px-3 font-semibold text-white flex items-center space-x-2">
+                                <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                                <span>sre-api-7b8f994-k9z2</span>
+                            </td>
+                            <td class="py-3 px-3 text-slate-400">us-central1-a</td>
+                            <td class="py-3 px-3"><span class="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px]">Running</span></td>
+                            <td class="py-3 px-3 text-slate-300">42m</td>
+                            <td class="py-3 px-3 text-slate-300">68 Mi</td>
+                            <td class="py-3 px-3 text-slate-300">0</td>
+                            <td class="py-3 px-3 text-[#FFB020]">4.2ms</td>
+                            <td class="py-3 px-3 text-right"><button onclick="copyToClipboard('kubectl logs sre-api-7b8f994-k9z2')" class="text-cyan-400 hover:underline text-[11px]">Logs</button></td>
+                        </tr>
+                        <tr class="hover:bg-white/[0.02] transition">
+                            <td class="py-3 px-3 font-semibold text-white flex items-center space-x-2">
+                                <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                                <span>sre-api-7b8f994-x1p4</span>
+                            </td>
+                            <td class="py-3 px-3 text-slate-400">us-central1-b</td>
+                            <td class="py-3 px-3"><span class="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px]">Running</span></td>
+                            <td class="py-3 px-3 text-slate-300">39m</td>
+                            <td class="py-3 px-3 text-slate-300">65 Mi</td>
+                            <td class="py-3 px-3 text-slate-300">0</td>
+                            <td class="py-3 px-3 text-[#FFB020]">4.0ms</td>
+                            <td class="py-3 px-3 text-right"><button onclick="copyToClipboard('kubectl logs sre-api-7b8f994-x1p4')" class="text-cyan-400 hover:underline text-[11px]">Logs</button></td>
+                        </tr>
+                        <tr class="hover:bg-white/[0.02] transition">
+                            <td class="py-3 px-3 font-semibold text-white flex items-center space-x-2">
+                                <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                                <span>sre-api-7b8f994-m7q8</span>
+                            </td>
+                            <td class="py-3 px-3 text-slate-400">us-central1-c</td>
+                            <td class="py-3 px-3"><span class="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px]">Running</span></td>
+                            <td class="py-3 px-3 text-slate-300">45m</td>
+                            <td class="py-3 px-3 text-slate-300">71 Mi</td>
+                            <td class="py-3 px-3 text-slate-300">0</td>
+                            <td class="py-3 px-3 text-[#FFB020]">4.4ms</td>
+                            <td class="py-3 px-3 text-right"><button onclick="copyToClipboard('kubectl logs sre-api-7b8f994-m7q8')" class="text-cyan-400 hover:underline text-[11px]">Logs</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- 6. LOKI LIVE STRUCTURED LOG CONSOLE        -->
+        <!-- ========================================== -->
+        <div class="soc-glass rounded-2xl p-6">
+            <div class="flex items-center justify-between pb-4 border-b border-white/[0.06]">
+                <div class="flex items-center space-x-3">
+                    <i data-lucide="terminal" class="w-4 h-4 text-emerald-400"></i>
+                    <span class="text-xs font-mono font-bold tracking-widest text-white uppercase">LOKI / OPENTELEMETRY LIVE STRUCTURED LOG STREAM</span>
+                </div>
+                <div class="flex items-center space-x-3 text-xs font-mono">
+                    <button id="btn-pause-logs" onclick="toggleLogPause()" class="px-2.5 py-1 rounded bg-white/[0.04] hover:bg-white/[0.08] text-slate-300 border border-white/10">Pause Auto-Scroll</button>
+                    <button onclick="clearLogConsole()" class="px-2.5 py-1 rounded bg-white/[0.04] hover:bg-white/[0.08] text-slate-400 hover:text-white border border-white/10">Clear</button>
+                </div>
+            </div>
+
+            <!-- Dark Terminal Window -->
+            <div id="logs-container" class="mt-4 p-4 rounded-xl bg-[#02040A] border border-white/[0.08] font-mono text-xs text-slate-300 max-h-72 overflow-y-auto space-y-2 leading-relaxed">
+                <div class="text-slate-500">// Stream iniciado. Conectado ao serviço sre-api com correlação X-Trace-ID...</div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- 7. SRE RUNBOOKS & POST-MORTEM DRAWER       -->
+        <!-- ========================================== -->
+        <div class="soc-glass rounded-2xl p-6">
+            <div class="flex items-center justify-between pb-4 border-b border-white/[0.06]">
+                <div class="flex items-center space-x-3">
+                    <i data-lucide="book-open" class="w-4 h-4 text-[#FFB020]"></i>
+                    <span class="text-xs font-mono font-bold tracking-widest text-white uppercase">SRE KNOWLEDGE BASE &amp; INCIDENT RUNBOOKS</span>
+                </div>
+                <!-- Tabs -->
+                <div class="flex items-center space-x-2">
+                    <button onclick="switchTab('runbooks')" id="tab-btn-runbooks" class="px-3 py-1.5 rounded-lg text-xs font-mono font-semibold bg-[#FFB020]/20 text-[#FFB020] border border-[#FFB020]/40">Runbooks</button>
+                    <button onclick="switchTab('postmortem')" id="tab-btn-postmortem" class="px-3 py-1.5 rounded-lg text-xs font-mono text-slate-400 hover:text-white bg-white/[0.03] border border-white/10">Post-Mortem</button>
+                </div>
+            </div>
+
+            <!-- Tab 1: Runbooks Grid -->
+            <div id="tab-content-runbooks" class="mt-5 grid grid-cols-1 md:grid-cols-3 gap-4">
+                <!-- Runbook 1 -->
+                <div class="p-4 rounded-xl bg-white/[0.02] border border-white/[0.06] flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between text-xs font-semibold text-slate-200">
+                            <span>high-error-rate.md</span>
+                            <span class="px-2 py-0.5 rounded-full bg-red-500/10 text-red-400 text-[10px]">P1 Fast Burn</span>
+                        </div>
+                        <p class="text-xs text-slate-400 mt-2 leading-relaxed">Mitigação de queima acelerada de Error Budget (&gt;14.4x). Restauração e isolamento de tráfego.</p>
                     </div>
-                    <p class="text-xs text-slate-400 mt-2 leading-relaxed">Resposta para Fast Burn Rate (14.4x). Procedimento de rollback de revisão e verificação do pool de conexões.</p>
                     <div class="mt-3 flex items-center justify-between p-2 bg-black/40 border border-white/[0.05] rounded-lg">
-                        <code class="text-[11px] font-mono text-slate-300">kubectl rollout undo deployment/sre-api</code>
-                        <button onclick="copyToClipboard('kubectl rollout undo deployment/sre-api')" class="text-slate-400 hover:text-[#FFB020] p-1"><i data-lucide="copy" class="w-3.5 h-3.5"></i></button>
+                        <code class="text-[11px] font-mono text-slate-300">curl -X POST :8090/chaos/reset</code>
+                        <button onclick="copyToClipboard('curl -X POST http://localhost:8090/chaos/reset')" class="text-slate-400 hover:text-[#FFB020] p-1"><i data-lucide="copy" class="w-3.5 h-3.5"></i></button>
                     </div>
                 </div>
-                <div class="p-4 rounded-xl bg-white/[0.02] border border-white/[0.06] hover:border-[#FFB020]/30 transition">
-                    <div class="flex items-center justify-between text-xs font-mono font-medium text-[#FFB020]">
-                        <span>high-latency.md</span>
-                        <span class="px-2 py-0.5 rounded-full bg-[#FFB020]/10 text-[#FFB020] text-[10px]">P2 Alerta</span>
+
+                <!-- Runbook 2 -->
+                <div class="p-4 rounded-xl bg-white/[0.02] border border-white/[0.06] flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between text-xs font-semibold text-slate-200">
+                            <span>high-latency.md</span>
+                            <span class="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 text-[10px]">P2 Latência</span>
+                        </div>
+                        <p class="text-xs text-slate-400 mt-2 leading-relaxed">Procedimento quando latência p95 ultrapassa 300ms. Autoscaling de réplicas e verificação de pool.</p>
                     </div>
-                    <p class="text-xs text-slate-400 mt-2 leading-relaxed">Violação do threshold de 300ms no P95. Auditoria de queries lentas e escalonamento reativo de réplicas.</p>
                     <div class="mt-3 flex items-center justify-between p-2 bg-black/40 border border-white/[0.05] rounded-lg">
-                        <code class="text-[11px] font-mono text-slate-300">kubectl scale deployment sre-api --replicas=6</code>
-                        <button onclick="copyToClipboard('kubectl scale deployment sre-api --replicas=6')" class="text-slate-400 hover:text-[#FFB020] p-1"><i data-lucide="copy" class="w-3.5 h-3.5"></i></button>
+                        <code class="text-[11px] font-mono text-slate-300">kubectl scale deploy sre-api --replicas=5</code>
+                        <button onclick="copyToClipboard('kubectl scale deployment sre-api --replicas=5')" class="text-slate-400 hover:text-[#FFB020] p-1"><i data-lucide="copy" class="w-3.5 h-3.5"></i></button>
                     </div>
                 </div>
-                <div class="p-4 rounded-xl bg-white/[0.02] border border-white/[0.06] hover:border-cyan-500/30 transition">
-                    <div class="flex items-center justify-between text-xs font-mono font-medium text-cyan-400">
-                        <span>api-down.md</span>
-                        <span class="px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 text-[10px]">P1 Outage</span>
+
+                <!-- Runbook 3 -->
+                <div class="p-4 rounded-xl bg-white/[0.02] border border-white/[0.06] flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between text-xs font-semibold text-slate-200">
+                            <span>api-down.md</span>
+                            <span class="px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 text-[10px]">P1 Outage</span>
+                        </div>
+                        <p class="text-xs text-slate-400 mt-2 leading-relaxed">Contenção de Pods em CrashLoopBackOff ou OOMKilled (Exit Code 137). Rollout restart seguro.</p>
                     </div>
-                    <p class="text-xs text-slate-400 mt-2 leading-relaxed">Contenção de Pods em CrashLoopBackOff ou OOMKilled (Exit Code 137). Procedimento de restauração segura.</p>
                     <div class="mt-3 flex items-center justify-between p-2 bg-black/40 border border-white/[0.05] rounded-lg">
-                        <code class="text-[11px] font-mono text-slate-300">kubectl rollout restart deployment/sre-api</code>
+                        <code class="text-[11px] font-mono text-slate-300">kubectl rollout restart deploy/sre-api</code>
                         <button onclick="copyToClipboard('kubectl rollout restart deployment/sre-api')" class="text-slate-400 hover:text-[#FFB020] p-1"><i data-lucide="copy" class="w-3.5 h-3.5"></i></button>
                     </div>
                 </div>
             </div>
 
-            <!-- Tab 2: Post-Mortem Content -->
-            <div id="tab-postmortem" class="mt-5 hidden p-5 bg-black/40 border border-white/[0.06] rounded-xl font-mono text-xs text-slate-300 space-y-3.5 leading-relaxed">
+            <!-- Tab 2: Post-Mortem Viewer -->
+            <div id="tab-content-postmortem" class="mt-5 hidden p-5 bg-black/40 border border-white/[0.06] rounded-xl font-mono text-xs text-slate-300 space-y-3.5 leading-relaxed">
                 <div class="flex items-center justify-between pb-3 border-b border-white/[0.06] text-[#FFB020] font-semibold">
-                    <span>INCIDENT REPORT: INC-2026-11-04-01 (DATABASE POOL EXHAUSTION)</span>
+                    <span>INCIDENT POST-MORTEM: INC-2026-11-04-DATABASE-TIMEOUT</span>
                     <span class="text-slate-400 font-normal">Duração: 18 min · Consumo do Budget: 3.8%</span>
                 </div>
-                <p><strong>Causa Raiz:</strong> Consulta de lote analítico sem índice composto gerou varredura sequencial em <code>/api/v1/items</code>, esgotando o limite de conexões ativas no Cloud SQL PostgreSQL e resultando em erros 500 em cascata.</p>
-                <p><strong>Detecção & Resolução:</strong> O alerta <code>FastErrorBudgetBurn</code> disparou em 45 segundos. O AI Triage Bot correlacionou os logs e forneceu o diagnóstico com comando exato de mitigação.</p>
-            </div>
-
-            <!-- Tab 3: Live Structured Logs Content -->
-            <div id="tab-logs" class="mt-5 hidden p-4 bg-black/40 border border-white/[0.06] rounded-xl font-mono text-xs text-slate-400 max-h-64 overflow-y-auto space-y-1.5" id="logs-container">
-                <p class="text-slate-600">// Aguardando requisições. As linhas de log com X-Trace-ID aparecerão aqui...</p>
+                <p><strong>Resumo do Incidente:</strong> No dia 04/11/2026, às 14:10 UTC, uma consulta analítica sem índice executou varreduras completas de tabela na rota <code>/api/v1/items</code>. O pool de conexões do Cloud SQL PostgreSQL esgotou-se em 45 segundos, gerando falhas em cascata de HTTP 500.</p>
+                <p><strong>Detecção do Alerta:</strong> O alerta multi-window <code>FastErrorBudgetBurn</code> disparou aos 45 segundos. O AI Triage Bot correlacionou os logs estruturados com o trace ID <code>trc-03d12a</code> e enviou a recomendação de mitigação imediata para a equipe de plantão.</p>
+                <p><strong>Ação Corretiva Definitiva:</strong> Adicionado índice B-Tree composto no PostgreSQL, ajustado o <code>max_connections</code> e ativado circuit breaker adaptativo no endpoint de negócio.</p>
             </div>
         </div>
 
-        <!-- Global Checkmate Identity Footer -->
+        <!-- ========================================== -->
+        <!-- 8. GLOBAL CHECKMATE BRAND FOOTER           -->
+        <!-- ========================================== -->
         <footer class="pt-4 pb-8 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 font-mono border-t border-white/[0.05]">
             <div class="flex items-center space-x-3 mb-3 sm:mb-0">
                 <img src="/static/img/global-checkmate-symbol-amber.svg" alt="Global Checkmate Logo" class="w-4 h-4 opacity-80">
@@ -552,13 +882,112 @@
 
     </div>
 
-    <!-- JavaScript Interactive Engine -->
+    <!-- ========================================== -->
+    <!-- 9. TACTICAL JAVASCRIPT ENGINE              -->
+    <!-- ========================================== -->
     <script>
         lucide.createIcons();
 
-        // Chart.js Dual-Axis Setup
-        const ctx = document.getElementById('liveTelemetryChart').getContext('2d');
-        const telemetryChart = new Chart(ctx, {
+        // 1. Synthesized Tactical Audio FX (Web Audio API - No external assets)
+        let audioCtx = null;
+        let isAudioEnabled = true;
+
+        function getAudioContext() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            return audioCtx;
+        }
+
+        function playSound(type) {
+            if (!isAudioEnabled) return;
+            try {
+                const ctx = getAudioContext();
+                const now = ctx.currentTime;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+
+                if (type === 'click') {
+                    // Crisp Apple Subtle Click
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(800, now);
+                    osc.frequency.exponentialRampToValueAtTime(300, now + 0.04);
+                    gain.gain.setValueAtTime(0.08, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.04);
+                } else if (type === 'radar') {
+                    // Tactical Radar Blip
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(1200, now);
+                    osc.frequency.exponentialRampToValueAtTime(1800, now + 0.08);
+                    gain.gain.setValueAtTime(0.12, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.08);
+                } else if (type === 'alarm') {
+                    // P1 Critical Incident Alarm
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(440, now);
+                    osc.frequency.linearRampToValueAtTime(880, now + 0.15);
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.2);
+                }
+            } catch (e) {
+                // Audio silent fallback
+            }
+        }
+
+        function toggleAudio() {
+            isAudioEnabled = !isAudioEnabled;
+            const icon = document.getElementById('sound-icon');
+            if (isAudioEnabled) {
+                icon.setAttribute('data-lucide', 'volume-2');
+                playSound('click');
+            } else {
+                icon.setAttribute('data-lucide', 'volume-x');
+            }
+            lucide.createIcons();
+        }
+
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(() => {});
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen().catch(() => {});
+                }
+            }
+        }
+
+        // 2. Real-time UTC Clock with Milliseconds
+        function updateClock() {
+            const now = new Date();
+            const h = String(now.getUTCHours()).padStart(2, '0');
+            const m = String(now.getUTCMinutes()).padStart(2, '0');
+            const s = String(now.getUTCSeconds()).padStart(2, '0');
+            const ms = String(now.getUTCMilliseconds()).padStart(3, '0');
+            const clockEl = document.getElementById('live-utc-clock');
+            if (clockEl) {
+                clockEl.textContent = `${h}:${m}:${s}.${ms} UTC`;
+            }
+        }
+        setInterval(updateClock, 47);
+
+        // 3. Chart.js Dual-Axis Setup
+        const chartCtx = document.getElementById('liveTelemetryChart').getContext('2d');
+        const telemetryChart = new Chart(chartCtx, {
             type: 'line',
             data: {
                 labels: Array(25).fill(''),
@@ -566,7 +995,7 @@
                     {
                         label: 'Taxa de Erro 5xx (%)',
                         borderColor: '#EF4444',
-                        backgroundColor: 'rgba(239, 68, 68, 0.08)',
+                        backgroundColor: 'rgba(239, 68, 68, 0.12)',
                         data: Array(25).fill(0),
                         tension: 0.35,
                         fill: true,
@@ -575,213 +1004,401 @@
                         yAxisID: 'y1'
                     },
                     {
-                        label: 'Throughput (QPS)',
+                        label: 'Latência p95 (ms)',
                         borderColor: '#FFB020',
-                        backgroundColor: 'rgba(255, 176, 32, 0.06)',
-                        data: Array(25).fill(0),
+                        backgroundColor: 'transparent',
+                        data: Array(25).fill(4.2),
                         tension: 0.35,
-                        fill: true,
                         borderWidth: 2,
                         pointRadius: 0,
-                        yAxisID: 'y'
+                        yAxisID: 'y2'
+                    },
+                    {
+                        label: 'Throughput (RPS)',
+                        borderColor: '#38BDF8',
+                        backgroundColor: 'transparent',
+                        data: Array(25).fill(120),
+                        tension: 0.35,
+                        borderWidth: 1.5,
+                        borderDash: [4, 4],
+                        pointRadius: 0,
+                        yAxisID: 'y3'
                     }
                 ]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                animation: { duration: 300 },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        backgroundColor: 'rgba(4, 8, 20, 0.95)',
+                        borderColor: 'rgba(56, 189, 248, 0.3)',
+                        borderWidth: 1,
+                        titleFont: { family: 'JetBrains Mono' },
+                        bodyFont: { family: 'JetBrains Mono' }
+                    }
+                },
                 scales: {
-                    x: { display: false },
-                    y: {
-                        type: 'linear',
-                        display: true,
-                        position: 'left',
-                        grid: { color: 'rgba(255, 255, 255, 0.04)' },
-                        ticks: { color: '#64748B', font: { family: 'JetBrains Mono', size: 10 } }
+                    x: {
+                        grid: { color: 'rgba(255, 255, 255, 0.03)' },
+                        ticks: { display: false }
                     },
                     y1: {
                         type: 'linear',
-                        display: true,
-                        position: 'right',
+                        position: 'left',
+                        min: 0,
                         max: 100,
+                        grid: { color: 'rgba(255, 255, 255, 0.04)' },
+                        ticks: {
+                            color: '#94A3B8',
+                            font: { family: 'JetBrains Mono', size: 10 },
+                            callback: val => val + '%'
+                        }
+                    },
+                    y2: {
+                        type: 'linear',
+                        position: 'right',
                         min: 0,
                         grid: { drawOnChartArea: false },
-                        ticks: { color: '#EF4444', font: { family: 'JetBrains Mono', size: 10 } }
+                        ticks: {
+                            color: '#FFB020',
+                            font: { family: 'JetBrains Mono', size: 10 },
+                            callback: val => val + 'ms'
+                        }
+                    },
+                    y3: {
+                        type: 'linear',
+                        position: 'right',
+                        display: false,
+                        min: 0
                     }
-                },
-                plugins: {
-                    legend: { display: false }
                 }
             }
         });
 
-        let trafficInterval = null;
-        let requestCount = 0;
+        // 4. Polling & Telemetry State
+        let isLogPaused = false;
+        let isAutopilotActive = false;
+        let autopilotTimer = null;
+        let lastReportedStatus = 'NOMINAL';
 
-        // Poll API Telemetry every 2 seconds
-        async function pollTelemetry() {
+        async function fetchTelemetry() {
             try {
                 const res = await fetch('/api/suite/telemetry');
+                if (!res.ok) return;
                 const data = await res.json();
-
-                // 1. Update Top KPIs
-                const avail = data.availability_pct.toFixed(2);
-                document.getElementById('metric-availability').innerText = `${avail}%`;
-                document.getElementById('bar-availability').style.width = `${avail}%`;
-
-                const budget = data.error_budget_remaining_pct.toFixed(1);
-                document.getElementById('metric-budget').innerText = `${budget}%`;
-                document.getElementById('bar-budget').style.width = `${budget}%`;
-                document.getElementById('metric-burn-mult').innerText = `Burn: ${data.burn_rate}x`;
-
-                document.getElementById('metric-latency').innerText = `${data.p95_ms} ms`;
-                document.getElementById('node-sa-lat').innerText = `${data.p95_ms}ms`;
-                document.getElementById('metric-p50').innerText = `${data.p50_ms}ms`;
-                document.getElementById('metric-p99').innerText = `${data.p99_ms}ms`;
-                document.getElementById('metric-requests-total').innerText = data.total_requests.toLocaleString();
-
-                // 2. Status Pill Update (DEFCON 5 vs Incident)
-                const isHealthy = (data.status === "NOMINAL");
-                const pill = document.getElementById('system-status-pill');
-                const dot = document.getElementById('system-status-dot');
-                const text = document.getElementById('system-status-text');
-
-                if (isHealthy) {
-                    pill.className = "flex items-center space-x-2.5 px-4 py-1.5 rounded-full bg-emerald-950/30 border border-emerald-500/30 shadow-sm";
-                    dot.className = "w-2 h-2 rounded-full bg-emerald-400 animate-pulse";
-                    text.className = "text-xs font-mono font-medium text-emerald-400";
-                    text.innerText = "DEFCON 5 · GLOBAL SYSTEM NOMINAL";
-                } else {
-                    pill.className = "flex items-center space-x-2.5 px-4 py-1.5 rounded-full bg-red-950/40 border border-red-500/40 shadow-lg shadow-red-500/20";
-                    dot.className = "w-2 h-2 rounded-full bg-red-400 animate-ping";
-                    text.className = "text-xs font-mono font-medium text-red-400";
-                    text.innerText = `DEFCON 2 · INCIDENT ACTIVE (${data.burn_rate}x BURN)`;
-                }
-
-                // 3. Render Endpoints Breakdown Table
-                if (data.endpoints && data.endpoints.length > 0) {
-                    const tbody = document.getElementById('endpoints-table-body');
-                    tbody.innerHTML = data.endpoints.map(e => `
-                        <tr class="hover:bg-white/[0.02] transition">
-                            <td class="py-2.5 px-3 font-medium text-white">${e.route}</td>
-                            <td class="py-2.5 px-2"><span class="px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400 text-[10px]">${e.method}</span></td>
-                            <td class="py-2.5 px-2 text-right tnum text-slate-300">${e.p50_ms}ms</td>
-                            <td class="py-2.5 px-2 text-right tnum ${e.p95_ms > 300 ? 'text-[#FFB020] font-bold' : 'text-slate-300'}">${e.p95_ms}ms</td>
-                            <td class="py-2.5 px-2 text-right tnum ${e.error_pct > 0 ? 'text-red-400 font-bold' : 'text-emerald-400'}">${e.error_pct}%</td>
-                            <td class="py-2.5 px-3 text-right">
-                                <span class="px-2 py-0.5 rounded-full ${e.status === 'Nominal' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/30'} text-[10px]">
-                                    ${e.status}
-                                </span>
-                            </td>
-                        </tr>
-                    `).join('');
-                }
-
-                // 4. Update Recent Logs Stream
-                if (data.recent_logs && data.recent_logs.length > 0) {
-                    const logContainer = document.getElementById('tab-logs');
-                    logContainer.innerHTML = data.recent_logs.slice(-20).reverse().map(l => `
-                        <div class="flex items-center space-x-2 text-[11px] font-mono">
-                            <span class="text-slate-500">[${l.time}]</span>
-                            <span class="px-1.5 py-0.2 rounded text-[10px] ${l.level === 'INFO' ? 'bg-blue-500/10 text-blue-400' : (l.level === 'WARNING' ? 'bg-[#FFB020]/10 text-[#FFB020]' : 'bg-red-500/10 text-red-400')}">${l.level}</span>
-                            <span class="text-slate-400 font-mono text-[10px]">${l.trace_id}</span>
-                            <span class="text-slate-200 truncate">${l.message}</span>
-                        </div>
-                    `).join('');
-                }
-
-                // 5. Update Live Chart
-                const currentErr = 100 - data.availability_pct;
-                telemetryChart.data.datasets[0].data.shift();
-                telemetryChart.data.datasets[0].data.push(currentErr);
-
-                telemetryChart.data.datasets[1].data.shift();
-                telemetryChart.data.datasets[1].data.push(Math.round(requestCount / 2));
-                requestCount = 0;
-                telemetryChart.update();
-
-            } catch (e) {
-                console.warn("Telemetry poll error", e);
+                updateUI(data);
+            } catch (err) {
+                console.error('Telemetry fetch error:', err);
             }
         }
 
-        setInterval(pollTelemetry, 2000);
+        function updateUI(data) {
+            // Check for State Transition for Sound Alert
+            if (data.status === 'INCIDENT_ACTIVE' && lastReportedStatus === 'NOMINAL') {
+                playSound('alarm');
+            }
+            lastReportedStatus = data.status;
 
-        // Chaos Triggers
-        async function injectError(rate) {
-            await fetch(`/chaos/inject-error?rate=${rate}`, { method: 'POST' });
-            appendIncidentCard(`⚠️ [INJEÇÃO DE ERRO 500] Taxa de ${rate * 100}% ativada. Alerta FastErrorBudgetBurn (14.4x) disparado.`, 'red');
+            // 1. Threat Status Pill
+            const pill = document.getElementById('system-status-pill');
+            const dot = document.getElementById('system-status-dot');
+            const text = document.getElementById('system-status-text');
+
+            if (data.status === 'NOMINAL') {
+                pill.className = 'flex items-center space-x-2.5 px-4 py-1.5 rounded-full bg-emerald-950/40 border border-emerald-500/30 shadow-sm transition-all duration-300';
+                dot.className = 'w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse';
+                text.className = 'text-xs font-mono font-medium text-emerald-300';
+                text.textContent = 'DEFCON 5 · ALL SYSTEMS NOMINAL';
+            } else {
+                pill.className = 'flex items-center space-x-2.5 px-4 py-1.5 rounded-full bg-red-950/60 border border-red-500/50 shadow-sm crimson-alert-glow transition-all duration-300';
+                dot.className = 'w-2.5 h-2.5 rounded-full bg-red-500 animate-ping';
+                text.className = 'text-xs font-mono font-bold text-red-300';
+                text.textContent = `DEFCON 1 · SLO BREACH (${data.burn_rate}x BURN)`;
+            }
+
+            // 2. Metrics HUD
+            document.getElementById('metric-avail').textContent = `${data.availability_pct.toFixed(3)}%`;
+            document.getElementById('metric-budget-remaining').textContent = `${data.error_budget_remaining_pct.toFixed(1)}%`;
+            
+            const burnRateEl = document.getElementById('metric-burn-rate');
+            burnRateEl.innerHTML = `${data.burn_rate.toFixed(1)}<span class="text-lg text-slate-400 font-normal">x</span>`;
+            if (data.burn_rate > 14.4) {
+                burnRateEl.className = 'text-3xl font-bold tracking-tight text-red-500 tnum';
+            } else if (data.burn_rate > 1.0) {
+                burnRateEl.className = 'text-3xl font-bold tracking-tight text-[#FFB020] tnum';
+            } else {
+                burnRateEl.className = 'text-3xl font-bold tracking-tight text-emerald-400 tnum';
+            }
+
+            document.getElementById('metric-p95').innerHTML = `${data.p95_ms}<span class="text-lg text-slate-400 font-normal">ms</span>`;
+            document.getElementById('metric-p50').textContent = `${data.p50_ms}ms`;
+            document.getElementById('metric-p99').textContent = `${data.p99_ms}ms`;
+            
+            const latencyMargin = Math.max(0, 300 - data.p95_ms).toFixed(1);
+            document.getElementById('metric-latency-margin').textContent = data.p95_ms > 300 ? `VIOLADO (-${(data.p95_ms - 300).toFixed(1)}ms)` : `+${latencyMargin}ms`;
+            document.getElementById('metric-latency-margin').className = data.p95_ms > 300 ? 'text-red-400 font-semibold tnum' : 'text-emerald-400 font-semibold tnum';
+
+            document.getElementById('metric-total-reqs').textContent = data.total_requests.toLocaleString();
+            document.getElementById('metric-cpu').textContent = `${data.cpu_pct || 42}%`;
+            document.getElementById('metric-mem').textContent = `${data.memory_pct || 58}%`;
+            document.getElementById('metric-errors').textContent = data.total_errors;
+
+            // 3. Apple Activity Rings Calculation
+            // Full circle circumference = 2 * PI * 19 ~= 119.38
+            const fullCircumference = 119.38;
+            
+            // Availability Ring
+            const availRatio = Math.max(0, Math.min(1, data.availability_pct / 100));
+            const ringAvail = document.getElementById('ring-avail');
+            ringAvail.style.strokeDashoffset = fullCircumference * (1 - availRatio);
+            ringAvail.style.stroke = data.availability_pct < 99.5 ? '#EF4444' : '#10B981';
+
+            // Burn Rate Ring (scale 0 to 20x)
+            const burnRatio = Math.min(1, data.burn_rate / 20.0);
+            const ringBurn = document.getElementById('ring-burn');
+            ringBurn.style.strokeDashoffset = fullCircumference * (1 - burnRatio);
+            ringBurn.style.stroke = data.burn_rate > 14.4 ? '#EF4444' : (data.burn_rate > 1.0 ? '#FFB020' : '#10B981');
+
+            // Latency Ring (scale 0 to 500ms)
+            const latencyRatio = Math.min(1, data.p95_ms / 300.0);
+            const ringLatency = document.getElementById('ring-latency');
+            ringLatency.style.strokeDashoffset = fullCircumference * (1 - latencyRatio);
+            ringLatency.style.stroke = data.p95_ms > 300 ? '#EF4444' : '#FFB020';
+
+            // 4. Update Chart Data
+            const errorPct = data.availability_pct < 100 ? (100 - data.availability_pct) : 0;
+            telemetryChart.data.datasets[0].data.shift();
+            telemetryChart.data.datasets[0].data.push(errorPct);
+
+            telemetryChart.data.datasets[1].data.shift();
+            telemetryChart.data.datasets[1].data.push(data.p95_ms);
+
+            const dynamicRps = 110 + Math.floor(Math.random() * 30);
+            telemetryChart.data.datasets[2].data.shift();
+            telemetryChart.data.datasets[2].data.push(dynamicRps);
+            telemetryChart.update();
+
+            // 5. Update Pod Matrix
+            if (data.pods) {
+                renderPodMatrix(data.pods);
+            }
+
+            // 6. Update Live Logs (if not paused)
+            if (!isLogPaused && data.recent_logs) {
+                renderLogs(data.recent_logs);
+            }
         }
 
-        async function injectLatency(ms) {
-            await fetch(`/chaos/inject-latency?ms=${ms}`, { method: 'POST' });
-            appendIncidentCard(`⏱️ [INJEÇÃO DE LATÊNCIA] Atraso de ${ms}ms injetado. Latência P95 ultrapassou 300ms.`, 'amber');
+        function renderPodMatrix(pods) {
+            const tbody = document.getElementById('pod-matrix-tbody');
+            if (!tbody) return;
+            tbody.innerHTML = pods.map(pod => {
+                const isErr = pod.status === 'Error' || pod.status === 'Degraded';
+                const statusColor = isErr ? 'bg-red-500/20 text-red-400 border border-red-500/30' : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
+                const dotColor = isErr ? 'bg-red-500 animate-ping' : 'bg-emerald-400';
+                return `
+                    <tr class="hover:bg-white/[0.02] transition">
+                        <td class="py-3 px-3 font-semibold text-white flex items-center space-x-2">
+                            <span class="w-2 h-2 rounded-full ${dotColor}"></span>
+                            <span>${pod.name}</span>
+                        </td>
+                        <td class="py-3 px-3 text-slate-400">${pod.zone}</td>
+                        <td class="py-3 px-3"><span class="px-2 py-0.5 rounded-full ${statusColor} text-[10px]">${pod.status}</span></td>
+                        <td class="py-3 px-3 text-slate-300">${pod.cpu_m}m</td>
+                        <td class="py-3 px-3 text-slate-300">${pod.mem_mi} Mi</td>
+                        <td class="py-3 px-3 text-slate-300">${pod.restarts}</td>
+                        <td class="py-3 px-3 ${pod.p95_ms > 300 ? 'text-red-400 font-bold' : 'text-[#FFB020]'}">${pod.p95_ms}ms</td>
+                        <td class="py-3 px-3 text-right">
+                            <button onclick="copyToClipboard('kubectl logs ${pod.name}')" class="text-cyan-400 hover:underline text-[11px]">Logs</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function renderLogs(logs) {
+            const container = document.getElementById('logs-container');
+            if (!container || logs.length === 0) return;
+            container.innerHTML = logs.map(l => {
+                const isError = l.level === 'ERROR';
+                const levelBadge = isError 
+                    ? '<span class="px-1.5 py-0.5 rounded bg-red-950 text-red-400 border border-red-800 text-[10px] font-bold">ERR</span>' 
+                    : '<span class="px-1.5 py-0.5 rounded bg-cyan-950 text-cyan-300 border border-cyan-800 text-[10px]">INF</span>';
+                return `
+                    <div class="flex items-start space-x-2 text-[11px] leading-relaxed">
+                        <span class="text-slate-500 select-none">${l.time}</span>
+                        ${levelBadge}
+                        <span class="text-cyan-400 select-all cursor-pointer hover:underline">[${l.trace_id}]</span>
+                        <span class="${isError ? 'text-red-300 font-medium' : 'text-slate-300'}">${l.message}</span>
+                    </div>
+                `;
+            }).join('');
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function toggleLogPause() {
+            isLogPaused = !isLogPaused;
+            document.getElementById('btn-pause-logs').textContent = isLogPaused ? 'Resume Auto-Scroll' : 'Pause Auto-Scroll';
+            playSound('click');
+        }
+
+        function clearLogConsole() {
+            document.getElementById('logs-container').innerHTML = '<div class="text-slate-500">// Console limpo. Aguardando novos registros de log...</div>';
+            playSound('click');
+        }
+
+        // 5. Chaos Engineering Actions
+        async function injectChaos(type, value) {
+            playSound('click');
+            let url = '';
+            if (type === 'latency') {
+                url = `/chaos/inject-latency?ms=${value}`;
+            } else if (type === 'error') {
+                url = `/chaos/inject-error?rate=${value}`;
+            } else if (type === 'circuit') {
+                url = `/chaos/trip-circuit`;
+            }
+
+            try {
+                const res = await fetch(url, { method: 'POST' });
+                const json = await res.json();
+                document.getElementById('traffic-status-msg').textContent = `Falha injetada: ${json.message || 'Ativa'}`;
+                // Trigger an AI diagnosis update
+                setTimeout(triggerAiTriage, 400);
+            } catch (e) {
+                console.error(e);
+            }
         }
 
         async function resetChaos() {
-            await fetch('/chaos/reset', { method: 'POST' });
-            appendIncidentCard(`✅ [SISTEMA RESTAURADO] Todos os parâmetros de caos foram resetados. SLO nominal restabelecido.`, 'emerald');
-        }
-
-        function appendIncidentCard(msg, color) {
-            const feed = document.getElementById('incident-feed');
-            const card = document.createElement('div');
-            const borderColor = color === 'red' ? 'rgba(239, 68, 68, 0.3)' : (color === 'amber' ? 'rgba(255, 176, 32, 0.3)' : 'rgba(16, 185, 129, 0.3)');
-            const textColor = color === 'red' ? '#EF4444' : (color === 'amber' ? '#FFB020' : '#10B981');
-            
-            card.className = "p-4 rounded-xl bg-white/[0.03] text-xs font-mono space-y-2 transition-all";
-            card.style.border = `1px solid ${borderColor}`;
-            card.innerHTML = `
-                <div class="flex items-center justify-between font-medium" style="color: ${textColor}">
-                    <span>${msg.slice(0, 32)}</span>
-                    <span class="text-slate-500 text-[11px]">${new Date().toLocaleTimeString()}</span>
-                </div>
-                <p class="text-slate-200">${msg}</p>
-                <div class="pt-2 border-t border-white/[0.04] text-[11px] text-[#FFB020] flex items-center justify-between">
-                    <span>Ação sugerida: Executar rollback ou resetar falhas</span>
-                    <span class="text-slate-400">Gemini 1.5</span>
-                </div>
-            `;
-            feed.prepend(card);
-            lucide.createIcons();
-        }
-
-        // Continuous Load Generator
-        function toggleContinuousTraffic() {
-            const btn = document.getElementById('btn-traffic');
-            const label = document.getElementById('btn-traffic-label');
-            if (trafficInterval) {
-                clearInterval(trafficInterval);
-                trafficInterval = null;
-                label.innerText = "Gerar Carga (k6)";
-                btn.className = "apple-click px-3.5 py-1.5 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] text-slate-200 border border-white/10 text-xs font-mono font-medium flex items-center space-x-1.5";
-            } else {
-                label.innerText = "Parar Carga";
-                btn.className = "apple-click px-3.5 py-1.5 rounded-xl bg-[#FFB020] text-black font-semibold text-xs font-mono flex items-center space-x-1.5 animate-pulse";
-                trafficInterval = setInterval(async () => {
-                    requestCount++;
-                    document.getElementById('metric-qps').innerText = (Math.random() * 8 + 14).toFixed(1);
-                    try {
-                        await fetch('/api/v1/items');
-                    } catch(e) {}
-                }, 120);
+            playSound('click');
+            try {
+                const res = await fetch('/chaos/reset', { method: 'POST' });
+                const json = await res.json();
+                document.getElementById('traffic-status-msg').textContent = 'Todos os parâmetros restaurados para nominal.';
+                setTimeout(triggerAiTriage, 400);
+            } catch (e) {
+                console.error(e);
             }
         }
 
-        // Segmented Tab Switcher
-        function switchTab(tab) {
-            ['runbooks', 'postmortem', 'logs'].forEach(t => {
-                document.getElementById(`tab-${t}`).classList.add('hidden');
-                document.getElementById(`tab-btn-${t}`).className = "px-4 py-1.5 rounded-full text-xs font-mono font-medium text-slate-400 hover:text-white transition apple-click";
-            });
-            document.getElementById(`tab-${tab}`).classList.remove('hidden');
-            document.getElementById(`tab-btn-${tab}`).className = "px-4 py-1.5 rounded-full text-xs font-mono font-semibold text-black bg-[#FFB020] transition apple-click";
+        // 6. Traffic Generator Simulation
+        async function sendSimulatedTraffic(count) {
+            playSound('radar');
+            const msgEl = document.getElementById('traffic-status-msg');
+            msgEl.textContent = `Disparando lote de ${count} requisições...`;
+            try {
+                const res = await fetch(`/api/suite/simulate-traffic?count=${count}`, { method: 'POST' });
+                const data = await res.json();
+                msgEl.textContent = `Lote finalizado: ${data.successes} sucesso(s), ${data.failures} falha(s) em média ${data.avg_latency_ms}ms.`;
+                fetchTelemetry();
+            } catch (e) {
+                msgEl.textContent = 'Erro ao disparar tráfego sintético.';
+            }
+        }
+
+        function toggleAutopilotTraffic() {
+            playSound('click');
+            isAutopilotActive = !isAutopilotActive;
+            const dot = document.getElementById('autopilot-dot');
+            const txt = document.getElementById('autopilot-text');
+            if (isAutopilotActive) {
+                dot.className = 'w-2 h-2 rounded-full bg-emerald-400 animate-pulse';
+                txt.textContent = 'Auto-Pilot: ON (2s)';
+                autopilotTimer = setInterval(() => sendSimulatedTraffic(15), 2000);
+            } else {
+                dot.className = 'w-2 h-2 rounded-full bg-slate-500';
+                txt.textContent = 'Auto-Pilot: OFF';
+                clearInterval(autopilotTimer);
+            }
+        }
+
+        // 7. Active AI Triage
+        async function triggerAiTriage() {
+            playSound('click');
+            try {
+                const res = await fetch('/api/suite/ai-triage', { method: 'POST' });
+                const rca = await res.json();
+
+                const isCrit = rca.severity.includes('CRITICAL');
+                const isWarn = rca.severity.includes('WARNING');
+
+                const sevBadge = document.getElementById('incident-severity-badge');
+                sevBadge.textContent = rca.severity;
+                sevBadge.className = isCrit 
+                    ? 'px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-red-500/20 text-red-400 border border-red-500/40' 
+                    : (isWarn ? 'px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-500/20 text-amber-400 border border-amber-500/40' : 'px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/40');
+
+                document.getElementById('incident-id').textContent = rca.incident_id;
+                document.getElementById('incident-title').textContent = rca.title;
+                document.getElementById('incident-root-cause').textContent = rca.root_cause;
+                document.getElementById('rca-impacted-slo').textContent = `${rca.impacted_slo} · ${rca.burn_rate}`;
+                document.getElementById('rca-runbook-link').textContent = rca.recommended_runbook;
+                document.getElementById('rca-command').textContent = rca.mitigation_command;
+
+                // Trace IDs
+                const traceContainer = document.getElementById('rca-trace-ids');
+                traceContainer.innerHTML = rca.correlated_trace_ids.map(id => `
+                    <span class="px-2 py-0.5 rounded bg-cyan-950/60 text-cyan-300 border border-cyan-800/40 text-[11px] select-all cursor-pointer hover:bg-cyan-900/40">${id}</span>
+                `).join('');
+
+            } catch (e) {
+                console.error('AI Triage request failed', e);
+            }
+        }
+
+        function copyRcaCommand() {
+            const cmd = document.getElementById('rca-command').textContent;
+            copyToClipboard(cmd);
         }
 
         function copyToClipboard(text) {
-            navigator.clipboard.writeText(text);
-            alert("Comando copiado: " + text);
+            playSound('click');
+            navigator.clipboard.writeText(text).then(() => {
+                const msg = document.getElementById('traffic-status-msg');
+                msg.textContent = `Copiado para área de transferência: "${text}"`;
+            });
         }
+
+        function inspectNode(nodeId) {
+            playSound('click');
+            const msg = document.getElementById('traffic-status-msg');
+            msg.textContent = `Região inspecionada: ${nodeId}. Roteamento BGP ativo e nominal.`;
+        }
+
+        function setChartRange(range) {
+            playSound('click');
+            // Visual switch
+        }
+
+        function switchTab(tab) {
+            playSound('click');
+            const runbooksContent = document.getElementById('tab-content-runbooks');
+            const postmortemContent = document.getElementById('tab-content-postmortem');
+            const btnRun = document.getElementById('tab-btn-runbooks');
+            const btnPost = document.getElementById('tab-btn-postmortem');
+
+            if (tab === 'runbooks') {
+                runbooksContent.classList.remove('hidden');
+                postmortemContent.classList.add('hidden');
+                btnRun.className = 'px-3 py-1.5 rounded-lg text-xs font-mono font-semibold bg-[#FFB020]/20 text-[#FFB020] border border-[#FFB020]/40';
+                btnPost.className = 'px-3 py-1.5 rounded-lg text-xs font-mono text-slate-400 hover:text-white bg-white/[0.03] border border-white/10';
+            } else {
+                runbooksContent.classList.add('hidden');
+                postmortemContent.classList.remove('hidden');
+                btnPost.className = 'px-3 py-1.5 rounded-lg text-xs font-mono font-semibold bg-[#FFB020]/20 text-[#FFB020] border border-[#FFB020]/40';
+                btnRun.className = 'px-3 py-1.5 rounded-lg text-xs font-mono text-slate-400 hover:text-white bg-white/[0.03] border border-white/10';
+            }
+        }
+
+        // Start Telemetry Polling (every 2 seconds)
+        fetchTelemetry();
+        setInterval(fetchTelemetry, 2000);
     </script>
 </body>
 </html>
