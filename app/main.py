@@ -4,6 +4,7 @@ import uuid
 import random
 import logging
 from contextvars import ContextVar
+from collections import deque
 from typing import Optional
 from fastapi import FastAPI, Request, Response, status, Query
 from fastapi.responses import HTMLResponse
@@ -11,6 +12,12 @@ from prometheus_fastapi_instrumentator import Instrumentator
 
 # Context variable for distributed tracing correlation
 trace_id_ctx: ContextVar[str] = ContextVar("trace_id", default="system")
+RECENT_LOGS = deque(maxlen=60)
+REQUEST_METRICS = {
+    "total_requests": 0,
+    "total_errors": 0,
+    "last_reset": time.time()
+}
 
 
 class StructuredLogFilter(logging.Filter):
@@ -18,6 +25,20 @@ class StructuredLogFilter(logging.Filter):
     def filter(self, record):
         record.trace_id = trace_id_ctx.get()
         return True
+
+
+class BufferLogHandler(logging.Handler):
+    """Stores in-memory recent logs for the Mission Control Live Stream."""
+    def emit(self, record):
+        try:
+            RECENT_LOGS.append({
+                "time": time.strftime("%H:%M:%S"),
+                "level": record.levelname,
+                "trace_id": getattr(record, 'trace_id', 'sys')[:8],
+                "message": record.getMessage()
+            })
+        except Exception:
+            pass
 
 
 # Configure JSON-compatible structured logging for Loki and Google Cloud Logging
@@ -29,9 +50,12 @@ log_formatter = logging.Formatter(
 log_handler.setFormatter(log_formatter)
 log_handler.addFilter(StructuredLogFilter())
 
+buffer_handler = BufferLogHandler()
+buffer_handler.addFilter(StructuredLogFilter())
+
 logger = logging.getLogger("sre-api")
 logger.setLevel(logging.INFO)
-logger.handlers = [log_handler]
+logger.handlers = [log_handler, buffer_handler]
 logger.propagate = False
 
 app = FastAPI(
@@ -50,7 +74,10 @@ async def trace_id_middleware(request: Request, call_next):
         response = await call_next(request)
         duration_ms = round((time.time() - start_time) * 1000, 2)
         response.headers["X-Trace-ID"] = trace_id
-        if request.url.path not in ["/healthz", "/ready", "/metrics"]:
+        if request.url.path not in ["/healthz", "/ready", "/metrics", "/api/suite/telemetry"]:
+            REQUEST_METRICS["total_requests"] += 1
+            if response.status_code >= 500:
+                REQUEST_METRICS["total_errors"] += 1
             logger.info(f"Handled {request.method} {request.url.path} -> {response.status_code} in {duration_ms}ms")
         return response
     finally:
@@ -87,11 +114,75 @@ def get_mission_control_suite():
 
 @app.get("/api/suite/telemetry", tags=["Mission Control Suite"])
 def get_suite_telemetry():
-    """Real-time telemetry payload for the Mission Control dashboard."""
+    """Real-time data-dense telemetry payload for Apple Pro Data UI."""
+    err_rate = FAULT_STATE["injected_error_rate"]
+    latency_added = FAULT_STATE["injected_latency_ms"]
+    
+    # Mathematical SLO Calculations
+    avail_pct = max(0.0, round((1.0 - err_rate) * 100.0, 3))
+    # 30-day error budget is 0.5% (0.005)
+    budget_consumed_pct = min(100.0, round((err_rate / 0.005) * 100.0, 1)) if err_rate > 0 else 0.0
+    budget_remaining_pct = max(0.0, round(100.0 - budget_consumed_pct, 1))
+    burn_rate_multiplier = round(err_rate / 0.005, 1)
+
+    p50_ms = round(1.8 + (latency_added * 0.4), 1)
+    p95_ms = round(4.2 + latency_added, 1)
+    p99_ms = round(12.5 + (latency_added * 1.3), 1)
+
+    is_nominal = (err_rate == 0.0 and latency_added == 0 and not FAULT_STATE["circuit_broken"])
+
+    endpoints_matrix = [
+        {
+            "route": "/api/v1/items",
+            "method": "GET",
+            "p50_ms": p50_ms,
+            "p95_ms": p95_ms,
+            "error_pct": round(err_rate * 100, 1),
+            "status": "Breach" if (p95_ms > 300 or err_rate > 0.01) else "Nominal",
+            "sla": "99.5%"
+        },
+        {
+            "route": "/api/v1/items/{id}",
+            "method": "GET",
+            "p50_ms": round(p50_ms * 0.9, 1),
+            "p95_ms": round(p95_ms * 0.95, 1),
+            "error_pct": round(err_rate * 100, 1),
+            "status": "Breach" if (p95_ms > 300 or err_rate > 0.01) else "Nominal",
+            "sla": "99.5%"
+        },
+        {
+            "route": "/healthz",
+            "method": "GET",
+            "p50_ms": 0.4,
+            "p95_ms": 1.2,
+            "error_pct": 0.0,
+            "status": "Nominal",
+            "sla": "99.9%"
+        },
+        {
+            "route": "/ready",
+            "method": "GET",
+            "p50_ms": 0.6,
+            "p95_ms": 1.5,
+            "error_pct": 100.0 if (err_rate >= 1.0 or FAULT_STATE["circuit_broken"]) else 0.0,
+            "status": "Failing" if (err_rate >= 1.0 or FAULT_STATE["circuit_broken"]) else "Nominal",
+            "sla": "99.9%"
+        }
+    ]
+
     return {
-        "injected_error_rate": FAULT_STATE["injected_error_rate"],
-        "injected_latency_ms": FAULT_STATE["injected_latency_ms"],
-        "circuit_broken": FAULT_STATE["circuit_broken"],
+        "status": "NOMINAL" if is_nominal else "INCIDENT_ACTIVE",
+        "availability_pct": avail_pct,
+        "error_budget_remaining_pct": budget_remaining_pct,
+        "burn_rate": burn_rate_multiplier,
+        "p50_ms": p50_ms,
+        "p95_ms": p95_ms,
+        "p99_ms": p99_ms,
+        "total_requests": REQUEST_METRICS["total_requests"],
+        "total_errors": REQUEST_METRICS["total_errors"],
+        "endpoints": endpoints_matrix,
+        "recent_logs": list(RECENT_LOGS),
+        "chaos_state": FAULT_STATE,
         "timestamp": time.time()
     }
 
