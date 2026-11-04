@@ -43,6 +43,27 @@ resource "google_compute_subnetwork" "subnet" {
   }
 }
 
+# 1b. Cloud NAT: private nodes have no external IPs, so outbound internet
+# (e.g. the triage bot calling the Gemini API) goes through NAT only.
+resource "google_compute_router" "router" {
+  name    = "sre-lab-router"
+  region  = var.region
+  network = google_compute_network.vpc.id
+}
+
+resource "google_compute_router_nat" "nat" {
+  name                               = "sre-lab-nat"
+  router                             = google_compute_router.router.name
+  region                             = var.region
+  nat_ip_allocate_option             = "AUTO_ONLY"
+  source_subnetwork_ip_ranges_to_nat = "ALL_SUBNETWORKS_ALL_IP_RANGES"
+
+  log_config {
+    enable = true
+    filter = "ERRORS_ONLY"
+  }
+}
+
 # 2. Artifact Registry for Container Images
 resource "google_artifact_registry_repository" "repo" {
   location      = var.region
