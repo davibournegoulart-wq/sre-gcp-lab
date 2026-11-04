@@ -116,7 +116,7 @@ jobs:
 
       - uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: 1.6.0
+          terraform_version: 1.9.8 # 1.6.x cannot verify current provider signatures (openpgp: key expired)
 
       - name: fmt
         run: terraform -chdir=infra/terraform fmt -check -recursive
