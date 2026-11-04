@@ -19,8 +19,8 @@ output "cloud_sql_connection_name" {
 }
 
 output "cloud_sql_ip" {
-  description = "Public IP of Cloud SQL instance"
-  value       = google_sql_database_instance.postgres.public_ip_address
+  description = "Private IP of Cloud SQL instance (VPC only)"
+  value       = google_sql_database_instance.postgres.private_ip_address
 }
 
 output "storage_bucket_url" {

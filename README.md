@@ -75,8 +75,8 @@ Based on the **Google SRE Workbook (Chapter 5: Alerting on SLOs)**, standard thr
 | **Latency SLI** | 95% < 300 ms | 5.0% | P95 latency > 300ms for > 3 minutes | Continuous degradation tracker |
 
 ### 2. Built-in Chaos Engineering & Fault Injection
-The FastAPI application features live chaos endpoints to simulate real outages without altering application code:
-- `POST /chaos/inject-latency?delay_seconds=1.5` — Injects artificial latency to trigger `HighP95Latency`.
+The FastAPI application features live chaos endpoints to simulate real outages without altering application code. They are enabled only when `CHAOS_ENABLED=true` (local Compose; the k8s manifest keeps them off) and every call needs the `X-Chaos-Token` header from `.env` — the `make chaos-*` targets send it for you:
+- `POST /chaos/inject-latency?ms=1500` — Injects artificial latency (0–5000 ms) to trigger `HighP95Latency`.
 - `POST /chaos/inject-error?rate=0.25` — Returns HTTP 500 on 25% of requests to burn the Error Budget and trip `FastErrorBudgetBurn`.
 - `POST /chaos/reset` — Instantly restores healthy baseline behavior.
 
@@ -132,10 +132,10 @@ You can spin up the full production observability environment locally using Dock
 
 ```bash
 # Clone the repository
-git clone https://github.com/davimartins/sre-gcp-lab.git
+git clone https://github.com/davibournegoulart-wq/sre-gcp-lab.git
 cd sre-gcp-lab
 
-# Start FastAPI, Prometheus, Alertmanager, Grafana, and AI Triage Bot
+# Generates .env and secrets/ (random tokens, gitignored), then starts the stack
 make up
 ```
 
@@ -143,7 +143,7 @@ make up
 - **FastAPI API & Docs:** `http://localhost:8090/docs`
 - **Prometheus UI:** `http://localhost:9090`
 - **Alertmanager:** `http://localhost:9093`
-- **Grafana Dashboard (SLO + Loki):** `http://localhost:3030` (User: `admin` | Password: `admin`)
+- **Grafana Dashboard (SLO + Loki):** `http://localhost:3030` (User: `admin` | Password: `GRAFANA_ADMIN_PASSWORD` in `.env`)
 - **AI Triage Bot:** `http://localhost:5001/healthz`
 - **Loki Log Engine:** `http://localhost:3105`
 
@@ -178,6 +178,13 @@ make chaos-reset
 # 7. Observe metrics return to normal in Grafana and alert marks RESOLVED
 ```
 
+### Security Posture
+- Every port is bound to `127.0.0.1`; nothing is reachable from the LAN.
+- Mission Control ships a strict CSP (`script-src 'self'`), self-hosted fonts and no third-party scripts; API data reaches the page only through `textContent`.
+- Alertmanager authenticates to the triage bot with a Bearer token (`secrets/alert_webhook_token`); the bot caps payload size and LLM calls per day.
+- Promtail reads container logs through a read-only Docker socket proxy, never the raw socket.
+- `make sec-scan` checks the tree **and git history** for leaked credentials plus these settings; `make unit` runs the security regression tests.
+
 ---
 
 ## Cloud Deployment (Google Cloud Platform)
@@ -190,8 +197,9 @@ make chaos-reset
 ```bash
 cd infra/terraform
 terraform init
-terraform plan -var="project_id=YOUR_GCP_PROJECT_ID"
-terraform apply -var="project_id=YOUR_GCP_PROJECT_ID" -auto-approve
+# Control plane is private by default: list the CIDRs allowed to reach it.
+terraform plan -var="project_id=YOUR_GCP_PROJECT_ID" -var='master_authorized_cidrs=[{cidr="203.0.113.10/32",name="home"}]'
+terraform apply -var="project_id=YOUR_GCP_PROJECT_ID" -var='master_authorized_cidrs=[{cidr="203.0.113.10/32",name="home"}]'
 ```
 
 ---

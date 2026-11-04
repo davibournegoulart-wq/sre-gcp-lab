@@ -1,12 +1,16 @@
+import hmac
+import json
 import os
+import re
 import time
 import uuid
 import random
 import logging
+import mimetypes
 from contextvars import ContextVar
 from collections import deque
 from typing import Optional
-from fastapi import FastAPI, Request, Response, status, Query
+from fastapi import Depends, FastAPI, Header, HTTPException, Request, Response, status, Query
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from prometheus_fastapi_instrumentator import Instrumentator
@@ -42,13 +46,22 @@ class BufferLogHandler(logging.Handler):
             pass
 
 
-# Configure JSON-compatible structured logging for Loki and Google Cloud Logging
+class JsonLogFormatter(logging.Formatter):
+    """Real JSON encoding: the old %-template broke on any quote in a path or
+    header, letting a request forge extra fields in Loki."""
+    def format(self, record):
+        return json.dumps({
+            "time": self.formatTime(record),
+            "level": record.levelname,
+            "trace_id": getattr(record, "trace_id", "system"),
+            "service": "sre-api",
+            "message": record.getMessage(),
+        })
+
+
+# Configure JSON structured logging for Loki and Google Cloud Logging
 log_handler = logging.StreamHandler()
-log_formatter = logging.Formatter(
-    '{"time":"%(asctime)s", "level":"%(levelname)s", "trace_id":"%(trace_id)s", '
-    '"service":"sre-api", "message":"%(message)s"}'
-)
-log_handler.setFormatter(log_formatter)
+log_handler.setFormatter(JsonLogFormatter())
 log_handler.addFilter(StructuredLogFilter())
 
 buffer_handler = BufferLogHandler()
@@ -65,16 +78,36 @@ app = FastAPI(
     version="1.1.0"
 )
 
+TRACE_ID_RE = re.compile(r"^[A-Za-z0-9_.:-]{1,64}$")
+
+# Strict CSP: the suite loads only its own CSS/JS/fonts, no inline script.
+SECURITY_HEADERS = {
+    "Content-Security-Policy": (
+        "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; "
+        "font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; "
+        "form-action 'none'; frame-ancestors 'none'"
+    ),
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "DENY",
+    "Referrer-Policy": "no-referrer",
+}
+
+
 # Request Tracing Middleware
 @app.middleware("http")
 async def trace_id_middleware(request: Request, call_next):
-    trace_id = request.headers.get("X-Trace-ID", str(uuid.uuid4()))
+    # Client-supplied trace IDs are logged and echoed back: accept only a short, plain token.
+    trace_id = request.headers.get("X-Trace-ID", "")
+    if not TRACE_ID_RE.match(trace_id):
+        trace_id = str(uuid.uuid4())
     token = trace_id_ctx.set(trace_id)
     start_time = time.time()
     try:
         response = await call_next(request)
         duration_ms = round((time.time() - start_time) * 1000, 2)
         response.headers["X-Trace-ID"] = trace_id
+        for header, value in SECURITY_HEADERS.items():
+            response.headers.setdefault(header, value)
         if request.url.path not in ["/healthz", "/ready", "/metrics", "/api/suite/telemetry"]:
             REQUEST_METRICS["total_requests"] += 1
             if response.status_code >= 500:
@@ -101,8 +134,25 @@ FAULT_STATE = {
 }
 
 
+# Chaos endpoints mutate the service's behaviour, so they are off unless
+# CHAOS_ENABLED=true (local lab) and every call carries X-Chaos-Token.
+CHAOS_ENABLED = os.getenv("CHAOS_ENABLED", "false").lower() == "true"
+CHAOS_TOKEN = os.getenv("CHAOS_TOKEN", "")
+if CHAOS_ENABLED and len(CHAOS_TOKEN) < 24:
+    raise RuntimeError("CHAOS_ENABLED=true requires CHAOS_TOKEN of at least 24 characters")
+
+
+def require_chaos_token(x_chaos_token: str = Header(default="")):
+    if not CHAOS_ENABLED:
+        raise HTTPException(status_code=404, detail="Not Found")
+    if not hmac.compare_digest(x_chaos_token.encode(), CHAOS_TOKEN.encode()):
+        raise HTTPException(status_code=401, detail="Invalid or missing X-Chaos-Token")
+
+
 TEMPLATE_PATH = os.path.join(os.path.dirname(__file__), "templates", "suite.html")
 STATIC_PATH = os.path.join(os.path.dirname(__file__), "static")
+# slim images lack a woff2 mapping; with nosniff the type must be right.
+mimetypes.add_type("font/woff2", ".woff2")
 if os.path.exists(STATIC_PATH):
     app.mount("/static", StaticFiles(directory=STATIC_PATH), name="static")
 
@@ -209,6 +259,7 @@ def get_suite_telemetry():
         "endpoints": endpoints_matrix,
         "recent_logs": list(RECENT_LOGS),
         "chaos_state": FAULT_STATE,
+        "chaos_enabled": CHAOS_ENABLED,
         "timestamp": time.time()
     }
 
@@ -280,15 +331,15 @@ def get_chaos_status():
     return {"status": "active_faults", "state": FAULT_STATE}
 
 
-@app.post("/chaos/inject-latency", tags=["Chaos Engineering"])
-def inject_latency(ms: int = Query(1500, description="Latency in milliseconds")):
+@app.post("/chaos/inject-latency", tags=["Chaos Engineering"], dependencies=[Depends(require_chaos_token)])
+def inject_latency(ms: int = Query(1500, ge=0, le=5000, description="Latency in milliseconds (0-5000)")):
     """Inject artificial latency into requests to trigger SLO latency alerts."""
     FAULT_STATE["injected_latency_ms"] = ms
     logger.warning(f"CHAOS INJECTED: Artificial latency set to {ms}ms")
     return {"message": f"Latency of {ms}ms injected into API routes"}
 
 
-@app.post("/chaos/inject-error", tags=["Chaos Engineering"])
+@app.post("/chaos/inject-error", tags=["Chaos Engineering"], dependencies=[Depends(require_chaos_token)])
 def inject_error_rate(rate: float = Query(0.25, ge=0.0, le=1.0, description="Error rate 0.0 to 1.0")):
     """Inject artificial 500 error rate to trigger SLO Error Budget burn rate."""
     FAULT_STATE["injected_error_rate"] = rate
@@ -296,7 +347,7 @@ def inject_error_rate(rate: float = Query(0.25, ge=0.0, le=1.0, description="Err
     return {"message": f"Error rate of {rate * 100}% injected into API routes"}
 
 
-@app.post("/chaos/reset", tags=["Chaos Engineering"])
+@app.post("/chaos/reset", tags=["Chaos Engineering"], dependencies=[Depends(require_chaos_token)])
 def reset_chaos():
     """Reset all injected faults to normal production parameters."""
     FAULT_STATE["injected_latency_ms"] = 0
@@ -306,7 +357,7 @@ def reset_chaos():
     return {"message": "All faults cleared. System nominal."}
 
 
-@app.post("/chaos/trip-circuit", tags=["Chaos Engineering"])
+@app.post("/chaos/trip-circuit", tags=["Chaos Engineering"], dependencies=[Depends(require_chaos_token)])
 def trip_circuit():
     """Trips the circuit breaker simulating complete database pool exhaustion."""
     FAULT_STATE["circuit_broken"] = True
@@ -314,7 +365,7 @@ def trip_circuit():
     return {"message": "Circuit breaker tripped. All dependent services failing."}
 
 
-@app.post("/api/suite/simulate-traffic", tags=["Mission Control Suite"])
+@app.post("/api/suite/simulate-traffic", tags=["Mission Control Suite"], dependencies=[Depends(require_chaos_token)])
 def simulate_traffic(count: int = Query(25, ge=1, le=100)):
     """Simulates realistic traffic burst for live telemetry and chart progression."""
     successes = 0
@@ -374,7 +425,7 @@ def trigger_ai_triage():
             "burn_rate": f"{burn_mult}x Fast Burn (Multi-Window 1h/5m breached)",
             "correlated_trace_ids": [f"trc-{uuid.uuid4().hex[:8]}" for _ in range(3)],
             "recommended_runbook": "runbooks/high-error-rate.md",
-            "mitigation_command": "curl -X POST http://localhost:8090/chaos/reset"
+            "mitigation_command": "make chaos-reset"
         }
     elif latency >= 300:
         return {
@@ -387,7 +438,7 @@ def trigger_ai_triage():
             "burn_rate": "1.8x Slow Burn",
             "correlated_trace_ids": [f"trc-{uuid.uuid4().hex[:8]}" for _ in range(3)],
             "recommended_runbook": "runbooks/high-latency.md",
-            "mitigation_command": "kubectl scale deployment sre-api --replicas=5 && curl -X POST http://localhost:8090/chaos/reset"
+            "mitigation_command": "kubectl scale deployment sre-api --replicas=5 && make chaos-reset"
         }
     else:
         return {

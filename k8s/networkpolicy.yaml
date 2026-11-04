@@ -1,0 +1,28 @@
+# Default-deny for sre-api: only HTTP on 8000 from inside the namespace
+# (service traffic, Prometheus scrape) and DNS egress are allowed.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: sre-api
+  namespace: default
+spec:
+  podSelector:
+    matchLabels:
+      app: sre-api
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - podSelector: {}
+    ports:
+    - protocol: TCP
+      port: 8000
+  egress:
+  - to:
+    - namespaceSelector: {}
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53

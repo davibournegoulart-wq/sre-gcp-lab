@@ -1,7 +1,8 @@
-.PHONY: help up down test load k6-load chaos-latency chaos-error chaos-reset tf-plan sec-scan
+.PHONY: help secrets up down unit test load k6-load chaos-latency chaos-error chaos-reset tf-plan sec-scan
 
 help:
 	@echo "SRE GCP Lab - Production SRE & Observability Commands"
+	@echo "  make secrets       - Generate .env (CHAOS_TOKEN, GRAFANA_ADMIN_PASSWORD) and secrets/ once"
 	@echo "  make up            - Launch entire stack (FastAPI, Prometheus, Alertmgr, Loki, Promtail, Grafana, Triage Bot)"
 	@echo "  make down          - Stop and remove all containers"
 	@echo "  make test          - Run API health checks and metrics probes"
@@ -10,16 +11,28 @@ help:
 	@echo "  make chaos-latency - Inject artificial latency (1500ms) to trigger HighP95Latency alert"
 	@echo "  make chaos-error   - Inject 25% HTTP 500 error rate to trigger FastErrorBudgetBurn alert"
 	@echo "  make chaos-reset   - Reset chaos flags back to healthy zero baseline"
+	@echo "  make unit          - Run security regression unit tests (API + triage bot)"
 	@echo "  make sec-scan      - Run security audit on containers and secrets"
 	@echo "  make tf-plan       - Run Terraform formatting, validation and plan"
 
-up:
+# Chaos calls need the token from .env; never hardcode it here.
+CHAOS_TOKEN = $(shell sed -n 's/^CHAOS_TOKEN=//p' .env 2>/dev/null)
+CHAOS_CURL = curl -s -X POST -H "X-Chaos-Token: $(CHAOS_TOKEN)"
+
+secrets:
+	@mkdir -p secrets
+	@[ -f .env ] || { printf 'CHAOS_TOKEN=%s\nGRAFANA_ADMIN_PASSWORD=%s\nGEMINI_API_KEY=\nSLACK_WEBHOOK_URL=\nDISCORD_WEBHOOK_URL=\n' \
+		"$$(openssl rand -hex 24)" "$$(openssl rand -base64 24 | tr -d '/+=')" > .env && chmod 600 .env && echo "Created .env"; }
+	@[ -f secrets/alert_webhook_token ] || { openssl rand -hex 32 > secrets/alert_webhook_token && chmod 644 secrets/alert_webhook_token && echo "Created secrets/alert_webhook_token"; }
+	@echo "Secrets ready. Grafana admin password is in .env (GRAFANA_ADMIN_PASSWORD)."
+
+up: secrets
 	docker compose up -d
 	@echo "\nAll services launched successfully:"
 	@echo "  - FastAPI App:       http://localhost:8090 (docs at /docs)"
 	@echo "  - Prometheus:        http://localhost:9090"
 	@echo "  - Alertmanager:      http://localhost:9093"
-	@echo "  - Grafana (Loki+Prom): http://localhost:3030 (admin / admin)"
+	@echo "  - Grafana (Loki+Prom): http://localhost:3030 (admin / password in .env)"
 	@echo "  - AI Triage Bot:     http://localhost:5001"
 	@echo "  - Loki Log Engine:   http://localhost:3105"
 
@@ -48,18 +61,21 @@ k6-load:
 
 chaos-latency:
 	@echo "Injecting 1500ms artificial latency..."
-	@curl -X POST "http://localhost:8090/chaos/inject-latency?ms=1500"
+	@$(CHAOS_CURL) "http://localhost:8090/chaos/inject-latency?ms=1500"
 	@echo "\n Latency injected. Monitor Grafana Latency Percentiles panel."
 
 chaos-error:
 	@echo "Injecting 25% 500 internal server error rate..."
-	@curl -X POST "http://localhost:8090/chaos/inject-error?rate=0.25"
+	@$(CHAOS_CURL) "http://localhost:8090/chaos/inject-error?rate=0.25"
 	@echo "\n Errors injected. Monitor Alertmanager FastErrorBudgetBurn & AI Triage Bot output."
 
 chaos-reset:
 	@echo "Resetting chaos injections..."
-	@curl -X POST http://localhost:8090/chaos/reset
+	@$(CHAOS_CURL) http://localhost:8090/chaos/reset
 	@echo "\n All systems returned to normal operational baseline."
+
+unit:
+	docker run --rm -v "$$PWD:/w" -w /w python:3.11-slim sh -c "pip install -q -r app/requirements.txt -r triage-bot/requirements.txt pytest httpx && python -m pytest -q tests/unit"
 
 sec-scan:
 	@echo "Auditing repository for secrets, credentials and security standards..."
