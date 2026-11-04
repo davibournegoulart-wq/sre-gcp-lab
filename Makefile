@@ -1,4 +1,4 @@
-.PHONY: help secrets up down unit test load k6-load chaos-latency chaos-error chaos-reset tf-plan sec-scan
+.PHONY: help secrets up down unit e2e test load k6-load chaos-latency chaos-error chaos-reset tf-plan sec-scan
 
 help:
 	@echo "SRE GCP Lab - Production SRE & Observability Commands"
@@ -12,6 +12,7 @@ help:
 	@echo "  make chaos-error   - Inject 25% HTTP 500 error rate to trigger FastErrorBudgetBurn alert"
 	@echo "  make chaos-reset   - Reset chaos flags back to healthy zero baseline"
 	@echo "  make unit          - Run security regression unit tests (API + triage bot)"
+	@echo "  make e2e           - Run browser tests (CSP, XSS, token, mobile layout) against the stack"
 	@echo "  make sec-scan      - Run security audit on containers and secrets"
 	@echo "  make tf-plan       - Run Terraform formatting, validation and plan"
 
@@ -76,6 +77,11 @@ chaos-reset:
 
 unit:
 	docker run --rm -v "$$PWD:/w" -w /w python:3.11-slim sh -c "pip install -q -r app/requirements.txt -r triage-bot/requirements.txt pytest httpx && python -m pytest -q tests/unit"
+
+# Browser tests against the running stack (joins its network, no host ports needed).
+e2e:
+	docker run --rm --network sre-gcp-lab_sre-network -v "$$PWD:/w" -w /w mcr.microsoft.com/playwright/python:v1.49.0-noble \
+		sh -c "pip install -q --break-system-packages pytest playwright==1.49.0 && python -m pytest -q tests/e2e"
 
 sec-scan:
 	@echo "Auditing repository for secrets, credentials and security standards..."
