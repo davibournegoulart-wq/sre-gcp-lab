@@ -1,0 +1,78 @@
+groups:
+  - name: slo_alerts
+    rules:
+      # SLO Target: 99.5% availability -> Error Budget = 0.5% (0.005)
+      
+      # 1. Fast Burn Rate (Page / Critical)
+      # Consumes 2% of 30-day budget in 1 hour (Burn Rate = 14.4x)
+      # Evaluated over long window (1h) and short window (5m) to avoid transient false positives
+      - alert: FastErrorBudgetBurn
+        expr: >-
+          (
+            sum(rate(http_requests_total{status=~"5.."}[1h]))
+            /
+            sum(rate(http_requests_total[1h]))
+          ) > (14.4 * 0.005)
+          and
+          (
+            sum(rate(http_requests_total{status=~"5.."}[5m]))
+            /
+            sum(rate(http_requests_total[5m]))
+          ) > (14.4 * 0.005)
+        for: 2m
+        labels:
+          severity: critical
+          tier: sre
+        annotations:
+          summary: "Critical Error Budget Burn Rate (14.4x)"
+          description: "API is burning >2% of monthly error budget per hour. Current 5m error rate is critical."
+          runbook_url: "https://github.com/davimartins/sre-gcp-lab/blob/main/runbooks/high-error-rate.md"
+
+      # 2. Medium Burn Rate (Warning / Slack notification)
+      # Consumes 5% of 30-day budget in 6 hours (Burn Rate = 6x)
+      - alert: MediumErrorBudgetBurn
+        expr: >-
+          (
+            sum(rate(http_requests_total{status=~"5.."}[6h]))
+            /
+            sum(rate(http_requests_total[6h]))
+          ) > (6 * 0.005)
+          and
+          (
+            sum(rate(http_requests_total{status=~"5.."}[30m]))
+            /
+            sum(rate(http_requests_total[30m]))
+          ) > (6 * 0.005)
+        for: 5m
+        labels:
+          severity: warning
+          tier: sre
+        annotations:
+          summary: "Elevated Error Budget Burn Rate (6x)"
+          description: "API is consuming 5% of monthly error budget over 6h. Investigate potential degraded backend dependency."
+          runbook_url: "https://github.com/davimartins/sre-gcp-lab/blob/main/runbooks/high-error-rate.md"
+
+      # 3. Latency SLO Alert: p95 latency > 300ms
+      - alert: HighP95Latency
+        expr: >-
+          histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le)) > 0.300
+        for: 3m
+        labels:
+          severity: warning
+          tier: sre
+        annotations:
+          summary: "P95 Latency Breach (>300ms)"
+          description: "95th percentile latency is currently above 300ms over 5m window."
+          runbook_url: "https://github.com/davimartins/sre-gcp-lab/blob/main/runbooks/high-latency.md"
+
+      # 4. Service Down Alert
+      - alert: APIDown
+        expr: up{job="sre-api"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          tier: sre
+        annotations:
+          summary: "FastAPI Backend Down"
+          description: "Prometheus target sre-api has been unreachable for more than 1 minute."
+          runbook_url: "https://github.com/davimartins/sre-gcp-lab/blob/main/runbooks/api-down.md"

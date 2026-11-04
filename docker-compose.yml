@@ -1,0 +1,88 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    container_name: sre-api
+    ports:
+      - "8000:8000"
+    environment:
+      - APP_NAME=sre-fastapi-service
+      - LOG_LEVEL=INFO
+      - ENVIRONMENT=production
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    networks:
+      - sre-network
+
+  prometheus:
+    image: prom/prometheus:v2.48.0
+    container_name: sre-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./observability/prometheus/alerts.yml:/etc/prometheus/alerts.yml:ro
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.enable-lifecycle'
+    depends_on:
+      - api
+    networks:
+      - sre-network
+
+  alertmanager:
+    image: prom/alertmanager:v0.26.0
+    container_name: sre-alertmanager
+    ports:
+      - "9093:9093"
+    volumes:
+      - ./observability/alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+    networks:
+      - sre-network
+
+  grafana:
+    image: grafana/grafana:10.2.0
+    container_name: sre-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - ./observability/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
+      - ./observability/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./observability/grafana/dashboards/json:/etc/grafana/provisioning/dashboards/json:ro
+    depends_on:
+      - prometheus
+    networks:
+      - sre-network
+
+  triage-bot:
+    build:
+      context: ./triage-bot
+      dockerfile: Dockerfile
+    container_name: sre-triage-bot
+    ports:
+      - "5001:5001"
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - SLACK_WEBHOOK_URL=${SLACK_WEBHOOK_URL:-}
+      - DISCORD_WEBHOOK_URL=${DISCORD_WEBHOOK_URL:-}
+    volumes:
+      - ./triage-bot/reports:/app/reports
+    networks:
+      - sre-network
+
+networks:
+  sre-network:
+    driver: bridge
