@@ -8,6 +8,7 @@ from collections import deque
 from typing import Optional
 from fastapi import FastAPI, Request, Response, status, Query
 from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
 from prometheus_fastapi_instrumentator import Instrumentator
 
 # Context variable for distributed tracing correlation
@@ -101,6 +102,9 @@ FAULT_STATE = {
 
 
 TEMPLATE_PATH = os.path.join(os.path.dirname(__file__), "templates", "suite.html")
+STATIC_PATH = os.path.join(os.path.dirname(__file__), "static")
+if os.path.exists(STATIC_PATH):
+    app.mount("/static", StaticFiles(directory=STATIC_PATH), name="static")
 
 
 @app.get("/", response_class=HTMLResponse, tags=["Mission Control Suite"])

@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 400" width="1600" height="400">
+  <!-- Symbol scaled to 320x320 at x=40, y=40 -->
+  <g transform="translate(40, 40) scale(0.3125)">
+    <!-- Ring -->
+    <circle cx="512" cy="512" r="330" fill="none" stroke="#F8FAFC" stroke-width="24"/>
+    <!-- Ticks -->
+    <line x1="512" y1="121" x2="512" y2="244" stroke="#F8FAFC" stroke-width="24" stroke-linecap="round"/>
+    <line x1="512" y1="780" x2="512" y2="903" stroke="#F8FAFC" stroke-width="24" stroke-linecap="round"/>
+    <line x1="121" y1="512" x2="244" y2="512" stroke="#F8FAFC" stroke-width="24" stroke-linecap="round"/>
+    <line x1="780" y1="512" x2="903" y2="512" stroke="#F8FAFC" stroke-width="24" stroke-linecap="round"/>
+    <!-- Squares -->
+    <rect x="331" y="331" width="122" height="122" rx="18" fill="#F8FAFC"/>
+    <rect x="571" y="331" width="122" height="122" rx="18" fill="#F8FAFC"/>
+    <rect x="331" y="571" width="122" height="122" rx="18" fill="#F8FAFC"/>
+    <rect x="571" y="571" width="122" height="122" rx="18" fill="#F8FAFC"/>
+    <!-- Center Amber -->
+    <rect x="451" y="451" width="122" height="122" rx="18" fill="#FFB020"/>
+  </g>
+
+  <!-- Typography -->
+  <text x="400" y="210" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="78" font-weight="900" fill="#F8FAFC" letter-spacing="4">GLOBAL CHECKMATE</text>
+  <text x="405" y="270" font-family="'Menlo', 'Monaco', 'Courier New', monospace" font-size="24" font-weight="600" fill="#FFB020" letter-spacing="8">// STRATEGIC INTELLIGENCE &amp; GEOPOLITICS</text>
+</svg>

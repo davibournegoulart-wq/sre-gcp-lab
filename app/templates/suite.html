@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Checkmate — Global SRE Cyber Command</title>
+    <title>Global Checkmate — SRE Mission Control & Cyber Command</title>
+    <link rel="icon" type="image/svg+xml" href="/static/img/global-checkmate-symbol-amber.svg">
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Lucide Icons -->
@@ -128,16 +129,32 @@
                 <div class="h-4 w-[1px] bg-white/10"></div>
 
                 <div class="flex items-center space-x-3.5">
-                    <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-[#1E293B] to-[#0A101D] border border-cyan-500/30 flex items-center justify-center amber-radar-glow relative">
-                        <i data-lucide="shield" class="w-4 h-4 text-[#FFB020] stroke-[2.2]"></i>
+                    <!-- Global Checkmate Official Tactical Mark -->
+                    <div class="w-9 h-9 rounded-xl bg-[#080F1E] border border-[#FFB020]/40 flex items-center justify-center shadow-[0_0_18px_rgba(255,176,32,0.22)] relative group cursor-pointer transition-transform duration-200 hover:scale-105" title="Global Checkmate">
+                        <svg class="w-6 h-6 transition-all duration-300 group-hover:drop-shadow-[0_0_8px_#FFB020]" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <!-- Reticle Ring -->
+                            <circle cx="512" cy="512" r="330" stroke="#F1F5F9" stroke-width="26" stroke-opacity="0.9"/>
+                            <!-- Crosshair Ticks (12, 6, 9, 3) -->
+                            <line x1="512" y1="120" x2="512" y2="245" stroke="#F1F5F9" stroke-width="26" stroke-linecap="round" stroke-opacity="0.9"/>
+                            <line x1="512" y1="779" x2="512" y2="904" stroke="#F1F5F9" stroke-width="26" stroke-linecap="round" stroke-opacity="0.9"/>
+                            <line x1="120" y1="512" x2="245" y2="512" stroke="#F1F5F9" stroke-width="26" stroke-linecap="round" stroke-opacity="0.9"/>
+                            <line x1="779" y1="512" x2="904" y2="512" stroke="#F1F5F9" stroke-width="26" stroke-linecap="round" stroke-opacity="0.9"/>
+                            <!-- Tactical Grid Squares -->
+                            <rect x="331" y="331" width="122" height="122" rx="18" fill="#F1F5F9" fill-opacity="0.9"/>
+                            <rect x="571" y="331" width="122" height="122" rx="18" fill="#F1F5F9" fill-opacity="0.9"/>
+                            <rect x="331" y="571" width="122" height="122" rx="18" fill="#F1F5F9" fill-opacity="0.9"/>
+                            <rect x="571" y="571" width="122" height="122" rx="18" fill="#F1F5F9" fill-opacity="0.9"/>
+                            <!-- Focal Checkmate Center Target (Amber #FFB020) -->
+                            <rect x="451" y="451" width="122" height="122" rx="18" fill="#FFB020" style="filter: drop-shadow(0 0 10px rgba(255, 176, 32, 0.85));"/>
+                        </svg>
                     </div>
                     <div>
                         <div class="flex items-center space-x-2">
-                            <span class="text-[13px] font-semibold tracking-tight text-white">CHECKMATE</span>
-                            <span class="text-xs font-mono font-bold text-[#FFB020]">COMMAND</span>
-                            <span class="px-2 py-0.5 text-[10px] font-mono font-medium rounded-full bg-cyan-950/60 text-cyan-300 border border-cyan-800/40">GLOBAL SOC 24/7</span>
+                            <span class="text-[13px] font-bold tracking-wider text-white">GLOBAL CHECKMATE</span>
+                            <span class="text-xs font-mono font-bold text-[#FFB020]">MISSION CONTROL</span>
+                            <span class="px-2 py-0.5 text-[10px] font-mono font-medium rounded-full bg-cyan-950/60 text-cyan-300 border border-cyan-800/40">GCP SOC 24/7</span>
                         </div>
-                        <p class="text-[10px] text-slate-400 font-normal">GCP Autopilot · Real-time Incident War Room</p>
+                        <p class="text-[10px] text-slate-400 font-mono tracking-tight">// STRATEGIC SRE OBSERVABILITY &amp; INCIDENT TRIAGE</p>
                     </div>
                 </div>
             </div>
@@ -516,6 +533,22 @@
                 <p class="text-slate-600">// Aguardando requisições. As linhas de log com X-Trace-ID aparecerão aqui...</p>
             </div>
         </div>
+
+        <!-- Global Checkmate Identity Footer -->
+        <footer class="pt-4 pb-8 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 font-mono border-t border-white/[0.05]">
+            <div class="flex items-center space-x-3 mb-3 sm:mb-0">
+                <img src="/static/img/global-checkmate-symbol-amber.svg" alt="Global Checkmate Logo" class="w-4 h-4 opacity-80">
+                <span class="text-slate-300 font-semibold tracking-wider">GLOBAL CHECKMATE</span>
+                <span class="text-slate-600">/</span>
+                <span class="text-slate-400">Strategic SRE Incident Intelligence &amp; Autonomous Telemetry</span>
+            </div>
+            <div class="flex items-center space-x-4 text-[11px] text-slate-500">
+                <span>Cluster: gke-autopilot-us-central1</span>
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500/80 animate-pulse"></span>
+                <span class="text-slate-400">Node Mesh: Synced</span>
+                <span class="px-2 py-0.5 rounded bg-white/[0.04] border border-white/[0.08] text-slate-400">DEFENSE BASELINE NOMINAL</span>
+            </div>
+        </footer>
 
     </div>
 
