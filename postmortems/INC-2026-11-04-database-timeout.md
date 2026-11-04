@@ -7,7 +7,7 @@
 ### Incident Overview
 - **Incident ID:** INC-2026-11-04-01
 - **Date:** 2026-11-04
-- **Incident Commander:** Davi Goulart Martins (SRE)
+- **Incident Commander:** SRE On-Call Responder
 - **Severity Level:** P1 - Critical
 - **Impacted Services:** `sre-api` (FastAPI Production Backend), Cloud SQL (PostgreSQL)
 - **Duration:** 18 minutes (Detection to Mitigation)
@@ -63,9 +63,9 @@ At 14:12 UTC, Prometheus triggered `FastErrorBudgetBurn` alert indicating a 14.4
 ### Preventative Action Items
 | Action Item | Type | Owner | Priority | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| Add composite index on `(created_at, status)` via Terraform/Liquibase | Prevent | Davi Martins | P0 | Done |
-| Set strict database statement timeout to 2500ms | Mitigate | Davi Martins | P1 | Done |
-| Add synthetic load testing with k6 in GitHub Actions CI | Detect | Davi Martins | P1 | In Progress |
+| Add composite index on `(created_at, status)` via Terraform/Liquibase | Prevent | SRE Team | P0 | Done |
+| Set strict database statement timeout to 2500ms | Mitigate | SRE Team | P1 | Done |
+| Add synthetic load testing with k6 in GitHub Actions CI | Detect | SRE Team | P1 | In Progress |
 
 ---
 ---

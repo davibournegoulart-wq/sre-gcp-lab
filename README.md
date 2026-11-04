@@ -202,11 +202,6 @@ terraform apply -var="project_id=YOUR_GCP_PROJECT_ID" -auto-approve
 
 ---
 
-## Author
-
-**Davi Goulart Martins**  
-*Site Reliability Engineer (SRE) | Cloud & Incident Management*  
-- **LinkedIn:** [linkedin.com/in/davi-martins-sre](https://linkedin.com)  
-- **Email:** davi.martinsgoulart@gmail.com  
-- **Location:** Jundiaí / Barueri - SP, Brazil
+## License
+Distributed under the MIT License. See `LICENSE` for more information.
 
