@@ -6,6 +6,7 @@ import logging
 from contextvars import ContextVar
 from typing import Optional
 from fastapi import FastAPI, Request, Response, status, Query
+from fastapi.responses import HTMLResponse
 from prometheus_fastapi_instrumentator import Instrumentator
 
 # Context variable for distributed tracing correlation
@@ -70,6 +71,29 @@ FAULT_STATE = {
     "injected_error_rate": 0.0,
     "circuit_broken": False
 }
+
+
+TEMPLATE_PATH = os.path.join(os.path.dirname(__file__), "templates", "suite.html")
+
+
+@app.get("/", response_class=HTMLResponse, tags=["Mission Control Suite"])
+def get_mission_control_suite():
+    """Serves the Unified SRE Mission Control Suite UI."""
+    if os.path.exists(TEMPLATE_PATH):
+        with open(TEMPLATE_PATH, "r", encoding="utf-8") as f:
+            return f.read()
+    return "<h1>SRE Mission Control Suite</h1>"
+
+
+@app.get("/api/suite/telemetry", tags=["Mission Control Suite"])
+def get_suite_telemetry():
+    """Real-time telemetry payload for the Mission Control dashboard."""
+    return {
+        "injected_error_rate": FAULT_STATE["injected_error_rate"],
+        "injected_latency_ms": FAULT_STATE["injected_latency_ms"],
+        "circuit_broken": FAULT_STATE["circuit_broken"],
+        "timestamp": time.time()
+    }
 
 
 @app.get("/healthz", status_code=status.HTTP_200_OK, tags=["Health"])
