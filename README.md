@@ -1,6 +1,6 @@
 # Production SRE & Observability Lab on Google Cloud (GCP)
 
-[![CI/CD Pipeline](https://github.com/davimartins/sre-gcp-lab/actions/workflows/ci.yml/badge.svg)](https://github.com/davimartins/sre-gcp-lab/actions)
+[![CI/CD Pipeline](https://github.com/davibournegoulart-wq/sre-gcp-lab/actions/workflows/ci.yml/badge.svg)](https://github.com/davibournegoulart-wq/sre-gcp-lab/actions)
 [![Terraform](https://img.shields.io/badge/IaC-Terraform_1.6+-7B42BC?logo=terraform&logoColor=white)](https://www.terraform.io/)
 [![GCP GKE Autopilot](https://img.shields.io/badge/Orchestration-GKE_Autopilot-4285F4?logo=google-cloud&logoColor=white)](https://cloud.google.com/kubernetes-engine)
 [![Prometheus](https://img.shields.io/badge/Metrics-Prometheus-E6522C?logo=prometheus&logoColor=white)](https://prometheus.io/)
