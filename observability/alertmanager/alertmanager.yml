@@ -13,3 +13,4 @@ receivers:
     webhook_configs:
       - url: "http://triage-bot:5001/alerts"
         send_resolved: true
+

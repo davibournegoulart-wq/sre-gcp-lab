@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   api:
     build:
@@ -7,7 +5,7 @@ services:
       dockerfile: Dockerfile
     container_name: sre-api
     ports:
-      - "8000:8000"
+      - "8090:8000"
     environment:
       - APP_NAME=sre-fastapi-service
       - LOG_LEVEL=INFO
@@ -49,11 +47,34 @@ services:
     networks:
       - sre-network
 
+  loki:
+    image: grafana/loki:2.9.2
+    container_name: sre-loki
+    ports:
+      - "3105:3100"
+    volumes:
+      - ./observability/loki/loki-config.yml:/etc/loki/local-config.yaml:ro
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - sre-network
+
+  promtail:
+    image: grafana/promtail:2.9.2
+    container_name: sre-promtail
+    volumes:
+      - ./observability/promtail/promtail-config.yml:/etc/promtail/config.yml:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    command: -config.file=/etc/promtail/config.yml
+    depends_on:
+      - loki
+    networks:
+      - sre-network
+
   grafana:
     image: grafana/grafana:10.2.0
     container_name: sre-grafana
     ports:
-      - "3000:3000"
+      - "3030:3000"
     environment:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=admin
@@ -61,9 +82,10 @@ services:
     volumes:
       - ./observability/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
       - ./observability/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
-      - ./observability/grafana/dashboards/json:/etc/grafana/provisioning/dashboards/json:ro
+      - ./observability/grafana/dashboards/json:/var/lib/grafana/dashboards:ro
     depends_on:
       - prometheus
+      - loki
     networks:
       - sre-network
 
@@ -76,10 +98,15 @@ services:
       - "5001:5001"
     environment:
       - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - PROMETHEUS_URL=http://prometheus:9090
+      - API_TARGET_URL=http://api:8000
       - SLACK_WEBHOOK_URL=${SLACK_WEBHOOK_URL:-}
       - DISCORD_WEBHOOK_URL=${DISCORD_WEBHOOK_URL:-}
     volumes:
       - ./triage-bot/reports:/app/reports
+    depends_on:
+      - prometheus
+      - api
     networks:
       - sre-network
 

@@ -45,3 +45,4 @@
   kubectl scale deployment sre-api --replicas=6
   ```
 - If a dependency is hanging, consider enabling circuit breaker pattern or reducing socket timeout.
+

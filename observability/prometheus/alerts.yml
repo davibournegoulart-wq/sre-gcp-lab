@@ -76,3 +76,4 @@ groups:
           summary: "FastAPI Backend Down"
           description: "Prometheus target sre-api has been unreachable for more than 1 minute."
           runbook_url: "https://github.com/davimartins/sre-gcp-lab/blob/main/runbooks/api-down.md"
+

@@ -27,3 +27,4 @@ output "storage_bucket_url" {
   description = "Cloud Storage bucket URL"
   value       = google_storage_bucket.assets.url
 }
+

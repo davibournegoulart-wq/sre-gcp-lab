@@ -140,11 +140,12 @@ make up
 ```
 
 ### Access Services:
-- **FastAPI API & Docs:** `http://localhost:8000/docs`
+- **FastAPI API & Docs:** `http://localhost:8090/docs`
 - **Prometheus UI:** `http://localhost:9090`
 - **Alertmanager:** `http://localhost:9093`
-- **Grafana Dashboard:** `http://localhost:3000` (User: `admin` | Password: `admin`)
+- **Grafana Dashboard (SLO + Loki):** `http://localhost:3030` (User: `admin` | Password: `admin`)
 - **AI Triage Bot:** `http://localhost:5001/healthz`
+- **Loki Log Engine:** `http://localhost:3105`
 
 ---
 
@@ -208,3 +209,4 @@ terraform apply -var="project_id=YOUR_GCP_PROJECT_ID" -auto-approve
 - **LinkedIn:** [linkedin.com/in/davi-martins-sre](https://linkedin.com)  
 - **Email:** davi.martinsgoulart@gmail.com  
 - **Location:** Jundiaí / Barueri - SP, Brazil
+

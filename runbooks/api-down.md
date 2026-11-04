@@ -26,3 +26,4 @@
    ```bash
    kubectl rollout restart deployment/sre-api
    ```
+

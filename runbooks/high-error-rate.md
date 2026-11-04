@@ -70,3 +70,4 @@ kubectl rollout restart deployment/sre-api
 1. Confirm error rate has dropped back below 0.1% for at least 10 minutes.
 2. Calculate total Error Budget consumed during the incident window.
 3. Initiate a blameless post-mortem using `postmortems/template.md`.
+

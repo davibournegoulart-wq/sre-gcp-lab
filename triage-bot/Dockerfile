@@ -19,3 +19,4 @@ USER botuser
 EXPOSE 5001
 
 CMD ["uvicorn", "bot:app", "--host", "0.0.0.0", "--port", "5001"]
+

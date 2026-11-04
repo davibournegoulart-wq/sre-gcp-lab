@@ -82,3 +82,4 @@ At 14:12 UTC, Prometheus triggered `FastErrorBudgetBurn` alert indicating a 14.4
 - **14:13** — Bot de IA postou hipótese de causa raiz no Slack com o link do runbook correspondente.
 - **14:18** — SRE aplicou mitigação, liberou conexões e reiniciou pods com novos limites de timeout.
 - **14:30** — Métricas normalizadas e incidente encerrado sem perda de dados.
+
