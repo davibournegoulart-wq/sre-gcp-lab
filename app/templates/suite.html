@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
   <meta name="theme-color" content="#07090C">
-  <title>Mission Control · Global Checkmate</title>
+  <title>Mission Control · Checkmate</title>
   <link rel="icon" type="image/svg+xml" href="/static/img/gc-mark-dark.svg">
   <link rel="preload" href="/static/fonts/Inter-Variable.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/static/css/suite.css">
@@ -16,8 +16,9 @@
 
   <header class="toolbar">
     <div class="toolbar-inner">
-      <a class="brand" href="/" aria-label="Global Checkmate Mission Control">
-        <img src="/static/img/gc-logo-horizontal-dark.svg" alt="Global Checkmate" width="139" height="30">
+      <a class="brand" href="/" aria-label="Checkmate Mission Control">
+        <img src="/static/img/gc-mark-dark.svg" alt="" width="30" height="30">
+        <span class="brand-word">Checkmate</span>
       </a>
 
       <div class="status-pill" id="status-pill" role="status" aria-live="polite">
@@ -160,13 +161,19 @@
       <!-- AI triage -->
       <section class="card" aria-labelledby="triage-title">
         <div class="card-head">
-          <h2 id="triage-title" class="title">AI incident triage</h2>
-          <button type="button" class="btn btn-primary" id="btn-triage">Run analysis</button>
+          <h2 id="triage-title" class="title">Incident triage</h2>
+          <div class="triage-actions">
+            <div class="segmented" role="radiogroup" aria-label="Analysis engine">
+              <button type="button" role="radio" id="engine-rules" aria-checked="true">Rules</button>
+              <button type="button" role="radio" id="engine-ai" aria-checked="false" disabled title="Set GEMINI_API_KEY in .env to enable">AI</button>
+            </div>
+            <button type="button" class="btn btn-primary" id="btn-triage">Run analysis</button>
+          </div>
         </div>
         <div class="incident" id="incident" data-tone="ok">
           <div class="incident-meta">
             <span class="tag mono" id="incident-severity">Healthy</span>
-            <span class="mono muted" id="incident-id">SYS-NOMINAL</span>
+            <span class="mono muted"><span id="incident-id">SYS-NOMINAL</span> · <span id="incident-source">rules</span></span>
           </div>
           <h3 class="incident-title" id="incident-title">All golden signals within SLO targets</h3>
           <p class="sub" id="incident-cause">Run an analysis to correlate the current telemetry with a probable root cause.</p>
@@ -281,7 +288,7 @@
 
   <footer class="footer">
     <img src="/static/img/gc-mark-dark.svg" alt="" width="28" height="28">
-    <p><strong class="display-sm">Global Checkmate</strong> <span class="muted">· Strategic SRE incident intelligence</span></p>
+    <p><strong class="display-sm">Checkmate</strong> <span class="muted">· Strategic SRE incident intelligence</span></p>
     <p class="mono muted">gke-autopilot-us-central1</p>
   </footer>
 </body>

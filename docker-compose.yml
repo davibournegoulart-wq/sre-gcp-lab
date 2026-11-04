@@ -25,6 +25,8 @@ services:
       # Fault injection exists for this lab only; k8s/ leaves it disabled.
       - CHAOS_ENABLED=true
       - CHAOS_TOKEN=${CHAOS_TOKEN:?run make secrets}
+      # Optional: enables the "AI" engine of the Mission Control triage card.
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
     read_only: true
     tmpfs:
       - /tmp

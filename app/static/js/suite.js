@@ -1,4 +1,4 @@
-// Global Checkmate · Mission Control
+// Checkmate · Mission Control
 // Every value from the API — log lines above all, since they echo request
 // paths — reaches the page through textContent, never innerHTML.
 "use strict";
@@ -286,11 +286,33 @@ function toggleAutopilot() {
 }
 
 // ---------- Triage ----------
+const ENGINE_KEY = "gc-triage-engine";
+let engine = "rules";
+
+function setEngine(next) {
+  engine = next;
+  $("engine-rules").setAttribute("aria-checked", String(next === "rules"));
+  $("engine-ai").setAttribute("aria-checked", String(next === "ai"));
+  try { localStorage.setItem(ENGINE_KEY, next); } catch { /* storage blocked */ }
+}
+
+async function loadAiStatus() {
+  try {
+    const status = await (await fetch("/api/suite/ai-status")).json();
+    const ai = $("engine-ai");
+    ai.disabled = !status.available;
+    ai.title = status.available ? `Analysis by ${status.model}` : "Set GEMINI_API_KEY in .env to enable";
+    let saved = "rules";
+    try { saved = localStorage.getItem(ENGINE_KEY) || "rules"; } catch { /* storage blocked */ }
+    setEngine(status.available && saved === "ai" ? "ai" : "rules");
+  } catch { /* keep rules */ }
+}
+
 async function runTriage() {
   const btn = $("btn-triage");
-  btn.disabled = true; btn.textContent = "Analyzing…";
+  btn.disabled = true; btn.textContent = engine === "ai" ? "Asking AI…" : "Analyzing…";
   try {
-    const res = await fetch("/api/suite/ai-triage", { method: "POST" });
+    const res = await fetch(`/api/suite/ai-triage?mode=${engine}`, { method: "POST" });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const rca = await res.json();
     const tone = rca.status === "NOMINAL" ? "ok" : rca.status === "ACTIVE_CRITICAL" ? "alert" : "warn";
@@ -298,6 +320,7 @@ async function runTriage() {
     const sev = $("incident-severity");
     sev.textContent = rca.severity; sev.dataset.tone = tone;
     $("incident-id").textContent = rca.incident_id;
+    $("incident-source").textContent = rca.source || "rules";
     $("incident-title").textContent = rca.title;
     $("incident-cause").textContent = rca.root_cause;
     $("rca-slo").textContent = rca.impacted_slo;
@@ -391,6 +414,9 @@ document.addEventListener("DOMContentLoaded", () => {
   $("btn-burst").addEventListener("click", () => sendBurst(30));
   $("btn-autopilot").addEventListener("click", toggleAutopilot);
   $("btn-triage").addEventListener("click", runTriage);
+  $("engine-rules").addEventListener("click", () => setEngine("rules"));
+  $("engine-ai").addEventListener("click", () => setEngine("ai"));
+  loadAiStatus();
   $("btn-copy").addEventListener("click", copyCommand);
 
   $("btn-pause").addEventListener("click", (e) => {
