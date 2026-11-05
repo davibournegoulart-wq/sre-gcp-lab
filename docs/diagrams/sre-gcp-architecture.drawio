@@ -1,0 +1,264 @@
+<mxfile host="app.diagrams.net" modified="2026-11-05T22:40:00.000Z" agent="Mozilla/5.0" version="24.0.0">
+  <diagram id="sre-gcp-architecture" name="SRE GCP Lab Architecture">
+    <mxGraphModel dx="1600" dy="950" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1920" pageHeight="1080" background="#0F1117" math="0" shadow="1">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- ==================== HEADER TITLE ==================== -->
+        <mxCell id="title_banner" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#161B22;strokeColor=#30363D;strokeWidth=2;arcSize=6;" vertex="1" parent="1">
+          <mxGeometry x="40" y="20" width="1840" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="title_text" value="&lt;font color=&quot;#FFB020&quot; style=&quot;font-size: 20px; font-weight: bold; letter-spacing: 1.5px;&quot;&gt;GLOBAL CHECKMATE&lt;/font&gt;&lt;font color=&quot;#FFFFFF&quot; style=&quot;font-size: 20px; font-weight: bold;&quot;&gt; | PRODUCTION SRE &amp; OBSERVABILITY LAB ON GOOGLE CLOUD&lt;/font&gt;&lt;br&gt;&lt;font color=&quot;#8B949E&quot; style=&quot;font-size: 12px;&quot;&gt;Enterprise Architecture: Terraform IaC · GKE Autopilot · Multi-Window Multi-Burn-Rate SLOs · Intelligent AIOps Triage (Gemini / Claude)&lt;/font&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;spacingLeft=20;" vertex="1" parent="1">
+          <mxGeometry x="50" y="25" width="1400" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="badge_status" value="STATUS: PRODUCTION-GRADE LAB" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#238636;strokeColor=#2EA043;fontColor=#FFFFFF;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1620" y="38" width="240" height="34" as="geometry" />
+        </mxCell>
+
+        <!-- ==================== ZONE 1: TRAFFIC & CHAOS ==================== -->
+        <mxCell id="zone_traffic" value="&lt;b&gt;1. TRAFFIC &amp; CHAOS SIMULATION&lt;/b&gt;" style="swimlane;whiteSpace=wrap;html=1;fillColor=#161B22;strokeColor=#FFB020;strokeWidth=1.5;fontColor=#FFB020;fontSize=12;startSize=30;rounded=1;arcSize=4;" vertex="1" parent="1">
+          <mxGeometry x="40" y="110" width="310" height="360" as="geometry" />
+        </mxCell>
+        <mxCell id="node_users" value="&lt;b&gt;Organic User Traffic&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#8B949E&quot;&gt;Continuous HTTP/REST Clients&lt;br&gt;/api/v1/items CRUD&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#21262D;strokeColor=#30363D;fontColor=#C9D1D9;fontSize=11;" vertex="1" parent="zone_traffic">
+          <mxGeometry x="20" y="45" width="270" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="node_k6" value="&lt;b&gt;k6 Performance Runner&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#8B949E&quot;&gt;SLO Threshold Assertions&lt;br&gt;p95 &amp;lt; 300ms | Error &amp;lt; 0.5%&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#21262D;strokeColor=#7B42BC;strokeWidth=1.5;fontColor=#C9D1D9;fontSize=11;" vertex="1" parent="zone_traffic">
+          <mxGeometry x="20" y="115" width="270" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="node_chaos" value="&lt;b&gt;Chaos Engineering Injector&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#F85149&quot;&gt;/chaos/inject-latency?ms=1500&lt;br&gt;/chaos/inject-error?rate=0.25&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#21262D;strokeColor=#F85149;strokeWidth=1.5;fontColor=#C9D1D9;fontSize=11;" vertex="1" parent="zone_traffic">
+          <mxGeometry x="20" y="190" width="270" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="node_mission_control" value="&lt;b&gt;Checkmate Mission Control&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#FFB020&quot;&gt;Global Cyber SOC Frontend&lt;br&gt;Secured with Chaos Tokens&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#21262D;strokeColor=#FFB020;strokeWidth=1.5;fontColor=#C9D1D9;fontSize=11;" vertex="1" parent="zone_traffic">
+          <mxGeometry x="20" y="265" width="270" height="65" as="geometry" />
+        </mxCell>
+
+        <!-- ==================== ZONE 2: CI/CD PIPELINE (GITHUB ACTIONS) ==================== -->
+        <mxCell id="zone_cicd" value="&lt;b&gt;2. CI/CD &amp; ZERO-TRUST AUTOMATION&lt;/b&gt;" style="swimlane;whiteSpace=wrap;html=1;fillColor=#161B22;strokeColor=#58A6FF;strokeWidth=1.5;fontColor=#58A6FF;fontSize=12;startSize=30;rounded=1;arcSize=4;" vertex="1" parent="1">
+          <mxGeometry x="40" y="490" width="310" height="540" as="geometry" />
+        </mxCell>
+        <mxCell id="node_git_push" value="&lt;b&gt;Developer Git Push&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#8B949E&quot;&gt;Branch: main (Tag: commit SHA)&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#21262D;strokeColor=#30363D;fontColor=#C9D1D9;fontSize=11;" vertex="1" parent="zone_cicd">
+          <mxGeometry x="20" y="45" width="270" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="node_tests" value="&lt;b&gt;Unit Tests &amp; Lint (Pytest)&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#8B949E&quot;&gt;Health checks, metrics &amp; chaos tests&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#21262D;strokeColor=#30363D;fontColor=#C9D1D9;fontSize=11;" vertex="1" parent="zone_cicd">
+          <mxGeometry x="20" y="110" width="270" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="node_sec_scan" value="&lt;b&gt;Security &amp; Secret Audit&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#3FB950&quot;&gt;Zero Hardcoded Keys Validation&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#21262D;strokeColor=#238636;fontColor=#C9D1D9;fontSize=11;" vertex="1" parent="zone_cicd">
+          <mxGeometry x="20" y="175" width="270" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="node_wif" value="&lt;b&gt;Workload Identity Federation&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#58A6FF&quot;&gt;Keyless GCP Auth via OIDC Tokens&lt;br&gt;github.com/davibournegoulart-wq&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#21262D;strokeColor=#58A6FF;strokeWidth=1.5;fontColor=#C9D1D9;fontSize=11;" vertex="1" parent="zone_cicd">
+          <mxGeometry x="20" y="240" width="270" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="node_docker_build" value="&lt;b&gt;Docker Buildx &amp; Push&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#8B949E&quot;&gt;Multi-stage build (Non-root 10001)&lt;br&gt;Tagged with immutable SHA&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#21262D;strokeColor=#30363D;fontColor=#C9D1D9;fontSize=11;" vertex="1" parent="zone_cicd">
+          <mxGeometry x="20" y="315" width="270" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="node_rollout" value="&lt;b&gt;Kube Rollout &amp; Auto-Rollback&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#E3B341&quot;&gt;kubectl rollout status --timeout=120s&lt;br&gt;Rollback automático em falha&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#21262D;strokeColor=#D29922;fontColor=#C9D1D9;fontSize=11;" vertex="1" parent="zone_cicd">
+          <mxGeometry x="20" y="390" width="270" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="node_iac_apply" value="&lt;b&gt;Terraform 1.9.8 IaC&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#8B949E&quot;&gt;Remote State em GCS Bucket&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#21262D;strokeColor=#7B42BC;fontColor=#C9D1D9;fontSize=11;" vertex="1" parent="zone_cicd">
+          <mxGeometry x="20" y="470" width="270" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- ==================== ZONE 3: GOOGLE CLOUD PLATFORM ==================== -->
+        <mxCell id="zone_gcp" value="&lt;b&gt;3. GOOGLE CLOUD PLATFORM (PROJECT: sre-gcp-lab | REGION: us-central1)&lt;/b&gt;" style="swimlane;whiteSpace=wrap;html=1;fillColor=#161B22;strokeColor=#4285F4;strokeWidth=2;fontColor=#4285F4;fontSize=13;startSize=35;rounded=1;arcSize=3;" vertex="1" parent="1">
+          <mxGeometry x="380" y="110" width="880" height="920" as="geometry" />
+        </mxCell>
+
+        <!-- Sub-block: VPC Network -->
+        <mxCell id="sub_vpc" value="&lt;b&gt;Dedicated VPC Network (10.10.0.0/20)&lt;/b&gt;" style="swimlane;whiteSpace=wrap;html=1;fillColor=#0D1117;strokeColor=#30363D;strokeWidth=1.5;fontColor=#58A6FF;fontSize=11;startSize=25;rounded=1;" vertex="1" parent="zone_gcp">
+          <mxGeometry x="20" y="45" width="840" height="610" as="geometry" />
+        </mxCell>
+
+        <!-- Cloud NAT & Router -->
+        <mxCell id="node_cloud_nat" value="&lt;b&gt;Cloud NAT &amp; Cloud Router&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#8B949E&quot;&gt;Secure Egress Gateway for Private Nodes&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#21262D;strokeColor=#4285F4;fontColor=#C9D1D9;fontSize=11;" vertex="1" parent="sub_vpc">
+          <mxGeometry x="20" y="35" width="370" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Artifact Registry -->
+        <mxCell id="node_gar" value="&lt;b&gt;Artifact Registry (Docker Repo)&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#8B949E&quot;&gt;us-central1-docker.pkg.dev/sre-lab-api-images&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#21262D;strokeColor=#4285F4;fontColor=#C9D1D9;fontSize=11;" vertex="1" parent="sub_vpc">
+          <mxGeometry x="450" y="35" width="370" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- GKE Autopilot Subnet -->
+        <mxCell id="sub_gke" value="&lt;b&gt;GKE Autopilot Cluster (Pods: 10.48.0.0/14 | Services: 10.52.0.0/20)&lt;/b&gt;" style="swimlane;whiteSpace=wrap;html=1;fillColor=#161B22;strokeColor=#326CE5;strokeWidth=1.5;fontColor=#326CE5;fontSize=11;startSize=25;rounded=1;" vertex="1" parent="sub_vpc">
+          <mxGeometry x="20" y="100" width="800" height="340" as="geometry" />
+        </mxCell>
+
+        <mxCell id="node_svc" value="&lt;b&gt;Cloud LoadBalancer Service&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#8B949E&quot;&gt;External Anycast VIP :80 → Container :8000&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#21262D;strokeColor=#326CE5;fontColor=#C9D1D9;fontSize=11;" vertex="1" parent="sub_gke">
+          <mxGeometry x="20" y="35" width="760" height="45" as="geometry" />
+        </mxCell>
+
+        <mxCell id="node_hpa" value="&lt;b&gt;Horizontal Pod Autoscaler (HPA)&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#8B949E&quot;&gt;Min: 2 | Max: 8 Replicas | CPU &amp;gt; 70% | Memory &amp;gt; 80%&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#21262D;strokeColor=#30363D;fontColor=#C9D1D9;fontSize=11;" vertex="1" parent="sub_gke">
+          <mxGeometry x="20" y="90" width="760" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- Pod Replicas -->
+        <mxCell id="pod_1" value="&lt;b&gt;FastAPI Pod 1 (Active)&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#3FB950&quot;&gt;• /healthz (Liveness)&lt;br&gt;• /ready (Readiness)&lt;br&gt;• /metrics (Prometheus)&lt;br&gt;• JSON Logs + Tracing&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#21262D;strokeColor=#238636;strokeWidth=1.5;fontColor=#C9D1D9;fontSize=10;align=left;spacingLeft=15;" vertex="1" parent="sub_gke">
+          <mxGeometry x="20" y="145" width="230" height="175" as="geometry" />
+        </mxCell>
+        <mxCell id="pod_2" value="&lt;b&gt;FastAPI Pod 2 (Active)&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#3FB950&quot;&gt;• /healthz (Liveness)&lt;br&gt;• /ready (Readiness)&lt;br&gt;• /metrics (Prometheus)&lt;br&gt;• JSON Logs + Tracing&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#21262D;strokeColor=#238636;strokeWidth=1.5;fontColor=#C9D1D9;fontSize=10;align=left;spacingLeft=15;" vertex="1" parent="sub_gke">
+          <mxGeometry x="285" y="145" width="230" height="175" as="geometry" />
+        </mxCell>
+        <mxCell id="pod_n" value="&lt;b&gt;FastAPI Pod N (Autoscaled)&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#D29922&quot;&gt;• Auto-provisioned by Autopilot&lt;br&gt;• Resource Requests: 250m CPU / 512Mi&lt;br&gt;• Security: RunAsNonRoot 10001&lt;br&gt;• Non-privileged execution&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#21262D;strokeColor=#D29922;strokeWidth=1.5;fontColor=#C9D1D9;fontSize=10;align=left;spacingLeft=15;" vertex="1" parent="sub_gke">
+          <mxGeometry x="550" y="145" width="230" height="175" as="geometry" />
+        </mxCell>
+
+        <!-- Managed Persistence -->
+        <mxCell id="node_sql" value="&lt;b&gt;Cloud SQL (PostgreSQL 15)&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#8B949E&quot;&gt;Private IP Peering (Zero Public IP)&lt;br&gt;Tier: db-f1-micro (Low-Cost Lab)&lt;/font&gt;" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=12;fillColor=#21262D;strokeColor=#336791;strokeWidth=1.5;fontColor=#C9D1D9;fontSize=11;" vertex="1" parent="sub_vpc">
+          <mxGeometry x="120" y="460" width="260" height="130" as="geometry" />
+        </mxCell>
+
+        <mxCell id="node_gcs" value="&lt;b&gt;Cloud Storage (GCS Bucket)&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#8B949E&quot;&gt;Encrypted Object Storage&lt;br&gt;Terraform State &amp; Assets&lt;/font&gt;" style="shape=folder;fontStyle=1;tabWidth=110;tabHeight=30;tabPosition=left;html=1;boundedLbl=1;fillColor=#21262D;strokeColor=#E3B341;strokeWidth=1.5;fontColor=#C9D1D9;fontSize=11;" vertex="1" parent="sub_vpc">
+          <mxGeometry x="470" y="460" width="260" height="130" as="geometry" />
+        </mxCell>
+
+        <!-- Sub-block: Cloud Operations & Governance -->
+        <mxCell id="sub_ops" value="&lt;b&gt;Cloud Operations, Logging &amp; Budget Controls&lt;/b&gt;" style="swimlane;whiteSpace=wrap;html=1;fillColor=#0D1117;strokeColor=#30363D;strokeWidth=1.5;fontColor=#58A6FF;fontSize=11;startSize=25;rounded=1;" vertex="1" parent="zone_gcp">
+          <mxGeometry x="20" y="670" width="840" height="230" as="geometry" />
+        </mxCell>
+        <mxCell id="node_logging" value="&lt;b&gt;Google Cloud Logging&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#8B949E&quot;&gt;Structured JSON Telemetry&lt;br&gt;HTTP Request context &amp; severity parsing&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#21262D;strokeColor=#4285F4;fontColor=#C9D1D9;fontSize=11;" vertex="1" parent="sub_ops">
+          <mxGeometry x="30" y="45" width="360" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="node_budget" value="&lt;b&gt;Cloud Billing Budget Alert&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#3FB950&quot;&gt;Cap: $25.00 USD/month&lt;br&gt;Notifications at 50%, 80%, 100%&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#21262D;strokeColor=#238636;fontColor=#C9D1D9;fontSize=11;" vertex="1" parent="sub_ops">
+          <mxGeometry x="450" y="45" width="360" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="node_destroy" value="&lt;b&gt;Cost Optimization Discipline (SRE Standard)&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#D29922&quot;&gt;terraform destroy ao fim de cada sessão de estudo | Recursos 100% recriáveis em &amp;lt; 8 minutos&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#161B22;strokeColor=#D29922;strokeWidth=1;fontColor=#C9D1D9;fontSize=11;" vertex="1" parent="sub_ops">
+          <mxGeometry x="30" y="140" width="780" height="65" as="geometry" />
+        </mxCell>
+
+        <!-- ==================== ZONE 4: OBSERVABILITY STACK ==================== -->
+        <mxCell id="zone_obs" value="&lt;b&gt;4. OBSERVABILITY STACK (METRICS &amp; LOGS)&lt;/b&gt;" style="swimlane;whiteSpace=wrap;html=1;fillColor=#161B22;strokeColor=#F46800;strokeWidth=1.5;fontColor=#F46800;fontSize=12;startSize=30;rounded=1;arcSize=4;" vertex="1" parent="1">
+          <mxGeometry x="1290" y="110" width="590" height="430" as="geometry" />
+        </mxCell>
+        <mxCell id="node_prom" value="&lt;b&gt;Prometheus (kube-prometheus)&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#8B949E&quot;&gt;Scrapes :8000/metrics a cada 15s&lt;br&gt;Golden Signals: Latência, Tráfego, Erros, Saturação&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#21262D;strokeColor=#E6522C;strokeWidth=1.5;fontColor=#C9D1D9;fontSize=11;" vertex="1" parent="zone_obs">
+          <mxGeometry x="25" y="45" width="255" height="75" as="geometry" />
+        </mxCell>
+        <mxCell id="node_loki" value="&lt;b&gt;Grafana Loki &amp; Promtail&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#8B949E&quot;&gt;Agregação de logs indexados&lt;br&gt;Filtro por trace_id e container_name&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#21262D;strokeColor=#F46800;strokeWidth=1.5;fontColor=#C9D1D9;fontSize=11;" vertex="1" parent="zone_obs">
+          <mxGeometry x="310" y="45" width="255" height="75" as="geometry" />
+        </mxCell>
+        <mxCell id="node_grafana" value="&lt;b&gt;Grafana 10 (SLO &amp; Error Budget Dashboard)&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#58A6FF&quot;&gt;• Disponibilidade: 99.5% em 30d&lt;br&gt;• Latência: p95 &amp;lt; 300ms | p99 &amp;lt; 800ms&lt;br&gt;• Consumo visual do Error Budget&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#21262D;strokeColor=#F46800;strokeWidth=2;fontColor=#C9D1D9;fontSize=11;align=left;spacingLeft=15;" vertex="1" parent="zone_obs">
+          <mxGeometry x="25" y="145" width="540" height="95" as="geometry" />
+        </mxCell>
+        <mxCell id="node_alertmanager" value="&lt;b&gt;Alertmanager (Multi-Window Burn Rate Alerts)&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#F85149&quot;&gt;• FastBurn (14.4x burn rate em 1h) → PagerDuty/Crítico&lt;br&gt;• SlowBurn (6x burn rate em 6h) → Warning/Ticket&lt;br&gt;• HighP95Latency alert&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#21262D;strokeColor=#F85149;strokeWidth=2;fontColor=#C9D1D9;fontSize=11;align=left;spacingLeft=15;" vertex="1" parent="zone_obs">
+          <mxGeometry x="25" y="260" width="540" height="145" as="geometry" />
+        </mxCell>
+
+        <!-- ==================== ZONE 5: AIOps INCIDENT TRIAGE & WAR ROOM ==================== -->
+        <mxCell id="zone_aiops" value="&lt;b&gt;5. INTELLIGENT AIOps TRIAGE &amp; INCIDENT MANAGEMENT&lt;/b&gt;" style="swimlane;whiteSpace=wrap;html=1;fillColor=#161B22;strokeColor=#A371F7;strokeWidth=2;fontColor=#A371F7;fontSize=12;startSize=30;rounded=1;arcSize=4;" vertex="1" parent="1">
+          <mxGeometry x="1290" y="560" width="590" height="470" as="geometry" />
+        </mxCell>
+        <mxCell id="node_triage_bot" value="&lt;b&gt;SRE AI Incident Triage Bot (FastAPI Python)&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#8B949E&quot;&gt;Recebe webhook do Alertmanager &amp; busca últimos logs no Loki/GCP&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#21262D;strokeColor=#A371F7;strokeWidth=2;fontColor=#C9D1D9;fontSize=11;" vertex="1" parent="zone_aiops">
+          <mxGeometry x="25" y="45" width="540" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="node_llm" value="&lt;b&gt;LLM Inference Engine (Gemini / Claude API)&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#A371F7&quot;&gt;Analisa Stacktrace + Métricas de Burn Rate + Histórico&lt;br&gt;Gera hipótese diagnóstica de Causa Raiz (RCA)&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#21262D;strokeColor=#A371F7;fontColor=#C9D1D9;fontSize=11;" vertex="1" parent="zone_aiops">
+          <mxGeometry x="25" y="125" width="540" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="node_runbooks" value="&lt;b&gt;Runbooks Automatizados &amp; Post-Mortem&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#3FB950&quot;&gt;• runbooks/api-down.md | runbooks/high-error-rate.md&lt;br&gt;• Relatório RCA bilíngue (PT/EN): Impacto, Timeline, Ações&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#21262D;strokeColor=#238636;fontColor=#C9D1D9;fontSize=11;align=left;spacingLeft=15;" vertex="1" parent="zone_aiops">
+          <mxGeometry x="25" y="210" width="540" height="75" as="geometry" />
+        </mxCell>
+        <mxCell id="node_war_room" value="&lt;b&gt;War Room Dispatcher (Discord / Slack Incident Card)&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#FFB020&quot;&gt;Card formatado com Severity, Hipótese de Causa, Link do Runbook,&lt;br&gt;Gráfico do Grafana e Ação de Mitigação Imediata&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#21262D;strokeColor=#FFB020;strokeWidth=1.5;fontColor=#C9D1D9;fontSize=11;align=left;spacingLeft=15;" vertex="1" parent="zone_aiops">
+          <mxGeometry x="25" y="305" width="540" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="node_interview_win" value="&lt;b&gt;Diferencial em Entrevistas de SRE:&lt;/b&gt; Demonstração ao vivo do ciclo completo: Caos → Alerta de Burn Rate → Triagem por IA → Resolução com Runbook &amp; Post-Mortem" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#161B22;strokeColor=#30363D;fontColor=#8B949E;fontSize=10;" vertex="1" parent="zone_aiops">
+          <mxGeometry x="25" y="405" width="540" height="45" as="geometry" />
+        </mxCell>
+
+        <!-- ==================== CONNECTING EDGES ==================== -->
+        <!-- Traffic & Chaos to Load Balancer -->
+        <mxCell id="edge_traffic" value="HTTP Requests" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#58A6FF;strokeWidth=2;fontColor=#58A6FF;fontSize=10;" edge="1" parent="1" source="node_users" target="node_svc">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_k6" value="Stress Load" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#7B42BC;strokeWidth=2;fontColor=#A371F7;fontSize=10;" edge="1" parent="1" source="node_k6" target="node_svc">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="360" y="255" />
+              <mxPoint x="360" y="302" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_chaos" value="Inject Faults" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#F85149;strokeWidth=2;fontColor=#F85149;fontSize=10;" edge="1" parent="1" source="node_chaos" target="node_svc">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="370" y="330" />
+              <mxPoint x="370" y="302" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- CI/CD to WIF & GKE -->
+        <mxCell id="edge_wif" value="OIDC Auth" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#58A6FF;strokeWidth=1.5;fontColor=#58A6FF;fontSize=10;" edge="1" parent="1" source="node_wif" target="node_gar">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="360" y="760" />
+              <mxPoint x="360" y="215" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_deploy" value="Deploy Image" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;strokeColor=#3FB950;strokeWidth=1.5;fontColor=#3FB950;fontSize=10;" edge="1" parent="1" source="node_gar" target="node_svc">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Service to Pods -->
+        <mxCell id="edge_svc_pod1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;exitX=0.2;exitY=1;exitDx=0;exitDy=0;strokeColor=#326CE5;strokeWidth=1.5;" edge="1" parent="1" source="node_svc" target="pod_1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_svc_pod2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;strokeColor=#326CE5;strokeWidth=1.5;" edge="1" parent="1" source="node_svc" target="pod_2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_svc_podn" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;exitX=0.8;exitY=1;exitDx=0;exitDy=0;strokeColor=#326CE5;strokeWidth=1.5;" edge="1" parent="1" source="node_svc" target="pod_n">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Pods to DB -->
+        <mxCell id="edge_db" value="Private SQL Peering" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#336791;strokeWidth=1.5;fontColor=#58A6FF;fontSize=10;" edge="1" parent="1" source="pod_1" target="node_sql">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Pods to Telemetry -->
+        <mxCell id="edge_metrics" value="Prometheus Scrape" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#E6522C;strokeWidth=2;fontColor=#E6522C;fontSize=10;" edge="1" parent="1" source="pod_n" target="node_prom">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1220" y="475" />
+              <mxPoint x="1220" y="193" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_logs" value="Push Logs" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#F46800;strokeWidth=1.5;fontColor=#F46800;fontSize=10;" edge="1" parent="1" source="pod_n" target="node_loki">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1240" y="500" />
+              <mxPoint x="1240" y="193" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Observability Internal Flows -->
+        <mxCell id="edge_prom_grafana" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.3;entryY=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;strokeColor=#E6522C;strokeWidth=1.5;" edge="1" parent="1" source="node_prom" target="node_grafana">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_prom_alert" value="Burn Rate Triggers" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.3;entryY=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;strokeColor=#F85149;strokeWidth=1.5;fontColor=#F85149;fontSize=10;" edge="1" parent="1" source="node_grafana" target="node_alertmanager">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Alertmanager to AI Triage Bot -->
+        <mxCell id="edge_alert_triage" value="Webhook Alert Payload" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;strokeColor=#A371F7;strokeWidth=2;fontColor=#A371F7;fontSize=10;" edge="1" parent="1" source="node_alertmanager" target="node_triage_bot">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Triage Bot to LLM -->
+        <mxCell id="edge_triage_llm" value="Context + Logs + Prompt" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;strokeColor=#A371F7;strokeWidth=1.5;fontColor=#C9D1D9;fontSize=10;" edge="1" parent="1" source="node_triage_bot" target="node_llm">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- LLM to Runbook & War Room -->
+        <mxCell id="edge_llm_runbook" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;strokeColor=#3FB950;strokeWidth=1.5;" edge="1" parent="1" source="node_llm" target="node_runbooks">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_runbook_warroom" value="Dispatch Incident Card" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;strokeColor=#FFB020;strokeWidth=2;fontColor=#FFB020;fontSize=10;" edge="1" parent="1" source="node_runbooks" target="node_war_room">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
