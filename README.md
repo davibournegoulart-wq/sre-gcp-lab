@@ -9,6 +9,9 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 > **End-to-End Site Reliability Engineering (SRE) implementation** demonstrating production-grade reliability practices: Infrastructure as Code (Terraform), SLO/Error Budget multi-window alerting, automated chaos engineering injection, and an **AI Incident Triage Bot (Gemini / Claude)** for rapid Root Cause Analysis (RCA).
+>
+> 📋 **Enterprise Case Study:** [Sustentação de Ambientes Críticos & ITIL Incident Framework (P1–P4)](docs/PROATIVE-CASE-STUDY.md)  
+> 🗺️ **Interactive Draw.io Diagram:** [sre-gcp-architecture.drawio](docs/diagrams/sre-gcp-architecture.drawio) ([Open in diagrams.net](https://app.diagrams.net/?url=https://raw.githubusercontent.com/davibournegoulart-wq/sre-gcp-lab/main/docs/diagrams/sre-gcp-architecture.drawio))
 
 ---
 
@@ -73,6 +76,13 @@ Based on the **Google SRE Workbook (Chapter 5: Alerting on SLOs)**, standard thr
 | :--- | :--- | :--- | :--- | :--- |
 | **Availability SLI** | 99.5% | 0.5% (0.005) | Consumes 2% in 1 hour (1h + 5m window) | Consumes 5% in 6 hours (6h + 30m window) |
 | **Latency SLI** | 95% < 300 ms | 5.0% | P95 latency > 300ms for > 3 minutes | Continuous degradation tracker |
+
+#### ITIL Incident Severity Matrix (P1 to P4)
+Incident handling follows structured ITIL & SRE operational severities:
+- **P1 (Critical):** `FastErrorBudgetBurn` or `APIDown` — MTTA < 5min, immediate War Room paging, MTTR target < 30min.
+- **P2 (High):** `MediumErrorBudgetBurn` or `HighP95Latency` — MTTA < 15min, degraded performance investigation.
+- **P3 (Medium):** `PodRestartFlapping` / resource saturation flaps — MTTA < 1h, capacity & OOMKilled analysis.
+- **P4 (Low):** Informational alerts and warning trends — Ticket queue review.
 
 ### 2. Built-in Chaos Engineering & Fault Injection
 The FastAPI application features live chaos endpoints to simulate real outages without altering application code. They are enabled only when `CHAOS_ENABLED=true` (local Compose; the k8s manifest keeps them off) and every call needs the `X-Chaos-Token` header from `.env` — the `make chaos-*` targets send it for you:
