@@ -13,4 +13,9 @@ receivers:
     webhook_configs:
       - url: "http://triage-bot:5001/alerts"
         send_resolved: true
+        # The bot rejects unauthenticated alerts; token file comes from `make secrets`.
+        http_config:
+          authorization:
+            type: Bearer
+            credentials_file: /run/secrets/alert_webhook_token
 

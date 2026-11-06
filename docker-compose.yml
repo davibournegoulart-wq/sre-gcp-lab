@@ -1,84 +1,117 @@
+# Every port is bound to 127.0.0.1: none of these services has its own auth
+# layer worth trusting on a shared network. Secrets come from .env and
+# ./secrets/ — run `make secrets` once before `make up`.
+
+x-hardened: &hardened
+  restart: unless-stopped
+  security_opt:
+    - no-new-privileges:true
+  networks:
+    - sre-network
+
 services:
   api:
+    <<: *hardened
     build:
       context: ./app
       dockerfile: Dockerfile
     container_name: sre-api
     ports:
-      - "8090:8000"
+      - "127.0.0.1:8090:8000"
     environment:
       - APP_NAME=sre-fastapi-service
       - LOG_LEVEL=INFO
-      - ENVIRONMENT=production
+      - ENVIRONMENT=local-lab
+      # Fault injection exists for this lab only; k8s/ leaves it disabled.
+      - CHAOS_ENABLED=true
+      - CHAOS_TOKEN=${CHAOS_TOKEN:?run make secrets}
+      # Optional: enables the "AI" engine of the Mission Control triage card.
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
       interval: 10s
       timeout: 3s
       retries: 3
-    networks:
-      - sre-network
 
   prometheus:
-    image: prom/prometheus:v2.48.0
+    <<: *hardened
+    image: prom/prometheus:v2.55.1
     container_name: sre-prometheus
     ports:
-      - "9090:9090"
+      - "127.0.0.1:9090:9090"
     volumes:
       - ./observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - ./observability/prometheus/alerts.yml:/etc/prometheus/alerts.yml:ro
+    # --web.enable-lifecycle removed: it exposed unauthenticated POST /-/quit and /-/reload.
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
-      - '--web.enable-lifecycle'
     depends_on:
       - api
-    networks:
-      - sre-network
 
   alertmanager:
-    image: prom/alertmanager:v0.26.0
+    <<: *hardened
+    image: prom/alertmanager:v0.28.1
     container_name: sre-alertmanager
     ports:
-      - "9093:9093"
+      - "127.0.0.1:9093:9093"
     volumes:
       - ./observability/alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - ./secrets/alert_webhook_token:/run/secrets/alert_webhook_token:ro
     command:
       - '--config.file=/etc/alertmanager/alertmanager.yml'
-    networks:
-      - sre-network
 
   loki:
-    image: grafana/loki:2.9.2
+    <<: *hardened
+    image: grafana/loki:2.9.15
     container_name: sre-loki
     ports:
-      - "3105:3100"
+      - "127.0.0.1:3105:3100"
     volumes:
       - ./observability/loki/loki-config.yml:/etc/loki/local-config.yaml:ro
     command: -config.file=/etc/loki/local-config.yaml
-    networks:
-      - sre-network
+
+  # Read-only, filtered Docker API for promtail: only container listing and
+  # logs; every write (POST/DELETE) and every other endpoint is denied.
+  docker-proxy:
+    <<: *hardened
+    image: tecnativa/docker-socket-proxy:v0.4.1
+    container_name: sre-docker-proxy
+    environment:
+      - CONTAINERS=1
+      - NETWORKS=1 # read-only; promtail's docker_sd needs network labels
+      - POST=0
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
 
   promtail:
-    image: grafana/promtail:2.9.2
+    <<: *hardened
+    image: grafana/promtail:2.9.15
     container_name: sre-promtail
     volumes:
       - ./observability/promtail/promtail-config.yml:/etc/promtail/config.yml:ro
-      - /var/run/docker.sock:/var/run/docker.sock:ro
     command: -config.file=/etc/promtail/config.yml
     depends_on:
       - loki
-    networks:
-      - sre-network
+      - docker-proxy
 
   grafana:
-    image: grafana/grafana:10.2.0
+    <<: *hardened
+    image: grafana/grafana:11.6.6
     container_name: sre-grafana
     ports:
-      - "3030:3000"
+      - "127.0.0.1:3030:3000"
     environment:
       - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:?run make secrets}
       - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_AUTH_ANONYMOUS_ENABLED=false
+      - GF_ANALYTICS_REPORTING_ENABLED=false
     volumes:
       - ./observability/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
       - ./observability/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
@@ -86,29 +119,33 @@ services:
     depends_on:
       - prometheus
       - loki
-    networks:
-      - sre-network
 
   triage-bot:
+    <<: *hardened
     build:
       context: ./triage-bot
       dockerfile: Dockerfile
     container_name: sre-triage-bot
     ports:
-      - "5001:5001"
+      - "127.0.0.1:5001:5001"
     environment:
       - GEMINI_API_KEY=${GEMINI_API_KEY:-}
       - PROMETHEUS_URL=http://prometheus:9090
       - API_TARGET_URL=http://api:8000
       - SLACK_WEBHOOK_URL=${SLACK_WEBHOOK_URL:-}
       - DISCORD_WEBHOOK_URL=${DISCORD_WEBHOOK_URL:-}
+      - ALERT_WEBHOOK_TOKEN_FILE=/run/secrets/alert_webhook_token
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
     volumes:
       - ./triage-bot/reports:/app/reports
+      - ./secrets/alert_webhook_token:/run/secrets/alert_webhook_token:ro
     depends_on:
       - prometheus
       - api
-    networks:
-      - sre-network
 
 networks:
   sre-network:

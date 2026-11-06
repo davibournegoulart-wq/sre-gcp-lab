@@ -16,3 +16,15 @@ variable "environment" {
   default     = "production"
 }
 
+
+variable "master_authorized_cidrs" {
+  type        = list(object({ cidr = string, name = string }))
+  description = "CIDRs allowed to reach the GKE control plane (e.g. your office/home /32). Empty = nobody from outside Google."
+  default     = []
+}
+
+variable "deletion_protection" {
+  type        = bool
+  description = "Blocks terraform destroy on GKE and Cloud SQL. Set false only for a deliberate teardown."
+  default     = true
+}

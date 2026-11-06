@@ -1,11 +1,19 @@
 groups:
   - name: slo_alerts
     rules:
-      # SLO Target: 99.5% availability -> Error Budget = 0.5% (0.005)
-      
-      # 1. Fast Burn Rate (Page / Critical)
+      # ========================================================================
+      # ITIL INCIDENT SEVERITY MATRIX:
+      # P1 (Critical): Total outage or catastrophic Error Budget burn rate (14.4x)
+      # P2 (High): Severe degradation, High P95 Latency (>300ms) or 6x burn rate
+      # P3 (Medium): Moderate degradation, pod restart flaps, elevated memory/DB
+      # P4 (Low): Informational drift, warning trend
+      # ========================================================================
+
+      # ------------------------------------------------------------------------
+      # 1. P1 - CRITICAL: Fast Error Budget Burn Rate (Page / Immediate Pager)
       # Consumes 2% of 30-day budget in 1 hour (Burn Rate = 14.4x)
-      # Evaluated over long window (1h) and short window (5m) to avoid transient false positives
+      # Evaluated over long window (1h) and short window (5m) to prevent flapping
+      # ------------------------------------------------------------------------
       - alert: FastErrorBudgetBurn
         expr: >-
           (
@@ -21,15 +29,41 @@ groups:
           ) > (14.4 * 0.005)
         for: 2m
         labels:
-          severity: critical
+          severity: P1
+          priority: critical
+          urgency: high
+          impact: high
           tier: sre
+          itil_category: incident
         annotations:
-          summary: "Critical Error Budget Burn Rate (14.4x)"
-          description: "API is burning >2% of monthly error budget per hour. Current 5m error rate is critical."
-          runbook_url: "https://github.com/davimartins/sre-gcp-lab/blob/main/runbooks/high-error-rate.md"
+          summary: "[P1-CRITICAL] Rapid Error Budget Burn Rate (14.4x)"
+          description: "API is burning >2% of 30-day Error Budget per hour. Current 5m error rate is critical (>7.2%). Immediate incident response required."
+          runbook_url: "https://github.com/davibournegoulart-wq/sre-gcp-lab/blob/main/runbooks/high-error-rate.md"
+          actionable_step: "Check recent GKE deployments and verify Cloud SQL connection health."
 
-      # 2. Medium Burn Rate (Warning / Slack notification)
+      # ------------------------------------------------------------------------
+      # 2. P1 - CRITICAL: API Backend Down
+      # ------------------------------------------------------------------------
+      - alert: APIDown
+        expr: up{job="sre-api"} == 0
+        for: 1m
+        labels:
+          severity: P1
+          priority: critical
+          urgency: immediate
+          impact: critical
+          tier: sre
+          itil_category: incident
+        annotations:
+          summary: "[P1-CRITICAL] FastAPI Service Unreachable"
+          description: "Prometheus target sre-api has been DOWN for >1 minute. Pods may be in CrashLoopBackOff or LoadBalancer is unreachable."
+          runbook_url: "https://github.com/davibournegoulart-wq/sre-gcp-lab/blob/main/runbooks/api-down.md"
+          actionable_step: "Run 'kubectl get pods -l app=sre-api' and inspect pod restart reasons."
+
+      # ------------------------------------------------------------------------
+      # 3. P2 - HIGH: Medium Error Budget Burn Rate
       # Consumes 5% of 30-day budget in 6 hours (Burn Rate = 6x)
+      # ------------------------------------------------------------------------
       - alert: MediumErrorBudgetBurn
         expr: >-
           (
@@ -45,35 +79,53 @@ groups:
           ) > (6 * 0.005)
         for: 5m
         labels:
-          severity: warning
+          severity: P2
+          priority: high
+          urgency: medium
+          impact: high
           tier: sre
+          itil_category: incident
         annotations:
-          summary: "Elevated Error Budget Burn Rate (6x)"
-          description: "API is consuming 5% of monthly error budget over 6h. Investigate potential degraded backend dependency."
-          runbook_url: "https://github.com/davimartins/sre-gcp-lab/blob/main/runbooks/high-error-rate.md"
+          summary: "[P2-HIGH] Elevated Error Budget Burn Rate (6x)"
+          description: "API is consuming 5% of monthly error budget over 6h. Investigate backend dependency degradation or intermittent 5xx responses."
+          runbook_url: "https://github.com/davibournegoulart-wq/sre-gcp-lab/blob/main/runbooks/high-error-rate.md"
+          actionable_step: "Query Loki logs for recent 5xx stacktraces grouped by endpoint."
 
-      # 3. Latency SLO Alert: p95 latency > 300ms
+      # ------------------------------------------------------------------------
+      # 4. P2 - HIGH: High P95 Latency (>300ms SLO Breach)
+      # ------------------------------------------------------------------------
       - alert: HighP95Latency
         expr: >-
           histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le)) > 0.300
         for: 3m
         labels:
-          severity: warning
+          severity: P2
+          priority: high
+          urgency: medium
+          impact: medium
           tier: sre
+          itil_category: incident
         annotations:
-          summary: "P95 Latency Breach (>300ms)"
-          description: "95th percentile latency is currently above 300ms over 5m window."
-          runbook_url: "https://github.com/davimartins/sre-gcp-lab/blob/main/runbooks/high-latency.md"
+          summary: "[P2-HIGH] Latency SLO Breach (P95 > 300ms)"
+          description: "95th percentile latency is currently above 300ms over 5m evaluation window."
+          runbook_url: "https://github.com/davibournegoulart-wq/sre-gcp-lab/blob/main/runbooks/high-latency.md"
+          actionable_step: "Inspect database query execution time and HPA pod scaling response."
 
-      # 4. Service Down Alert
-      - alert: APIDown
-        expr: up{job="sre-api"} == 0
-        for: 1m
+      # ------------------------------------------------------------------------
+      # 5. P3 - MEDIUM: Pod Flapping / CrashLoop Warning
+      # ------------------------------------------------------------------------
+      - alert: PodRestartFlapping
+        expr: rate(kube_pod_container_status_restarts_total{container="api"}[15m]) * 900 > 2
+        for: 5m
         labels:
-          severity: critical
+          severity: P3
+          priority: medium
+          urgency: low
+          impact: low
           tier: sre
+          itil_category: problem
         annotations:
-          summary: "FastAPI Backend Down"
-          description: "Prometheus target sre-api has been unreachable for more than 1 minute."
-          runbook_url: "https://github.com/davimartins/sre-gcp-lab/blob/main/runbooks/api-down.md"
-
+          summary: "[P3-MEDIUM] API Pod Restart Flapping Detected"
+          description: "API container restarted more than 2 times in the last 15 minutes. Check OOMKilled or failed readiness probes."
+          runbook_url: "https://github.com/davibournegoulart-wq/sre-gcp-lab/blob/main/runbooks/api-down.md"
+          actionable_step: "Inspect 'kubectl describe pod' for Last State: Terminated OOMKilled."

@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#07090C">
+  <title>Mission Control · Checkmate</title>
+  <link rel="icon" type="image/svg+xml" href="/static/img/gc-mark-dark.svg">
+  <link rel="preload" href="/static/fonts/Inter-Variable.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/static/css/suite.css">
+  <script src="/static/js/suite.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="toolbar">
+    <div class="toolbar-inner">
+      <a class="brand" href="/" aria-label="Checkmate Mission Control">
+        <img src="/static/img/gc-mark-dark.svg" alt="" width="30" height="30">
+        <span class="brand-word">Checkmate</span>
+      </a>
+
+      <div class="status-pill" id="status-pill" role="status" aria-live="polite">
+        <span class="status-dot" aria-hidden="true"></span>
+        <span id="status-text">Connecting…</span>
+      </div>
+
+      <div class="toolbar-right">
+        <time class="clock mono" id="utc-clock" aria-label="Current UTC time">--:--:-- UTC</time>
+        <nav class="tool-links" aria-label="Observability tools">
+          <a href="http://localhost:3030" target="_blank" rel="noopener noreferrer">Grafana</a>
+          <a href="http://localhost:9090" target="_blank" rel="noopener noreferrer">Prometheus</a>
+          <a href="http://localhost:9093" target="_blank" rel="noopener noreferrer">Alertmanager</a>
+          <a href="https://github.com/davibournegoulart-wq/sre-gcp-lab" target="_blank" rel="noopener noreferrer">GitHub</a>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <main id="main" class="page">
+    <section class="hero" aria-labelledby="hero-title">
+      <h1 id="hero-title" class="display">Mission Control</h1>
+      <p class="hero-sub" id="hero-sub">Golden signals, error-budget burn and incident triage for <span class="mono">sre-api</span>, queried live from Prometheus every 2 seconds.</p>
+    </section>
+
+    <!-- Golden signals -->
+    <section class="metrics" aria-label="Golden signals">
+      <article class="card metric" data-tone="ok" id="card-avail">
+        <div class="metric-head">
+          <h2 class="label">Availability</h2>
+          <span class="tag mono" id="avail-tag">SLO 99.5%</span>
+        </div>
+        <div class="metric-body">
+          <div>
+            <p class="value mono" id="metric-avail">—</p>
+            <p class="sub">30-day budget left <strong class="mono" id="metric-budget">—</strong></p>
+          </div>
+          <svg class="ring" viewBox="0 0 48 48" aria-hidden="true"><circle class="ring-track" cx="24" cy="24" r="19"/><circle class="ring-fill" id="ring-avail" cx="24" cy="24" r="19"/></svg>
+        </div>
+      </article>
+
+      <article class="card metric" data-tone="ok" id="card-burn">
+        <div class="metric-head">
+          <h2 class="label">Burn rate</h2>
+          <span class="tag mono" id="burn-tag">Alert at 14.4×</span>
+        </div>
+        <div class="metric-body">
+          <div>
+            <p class="value mono"><span id="metric-burn">—</span><span class="unit">×</span></p>
+            <p class="sub mono">5m window · 1h <span id="metric-burn-1h">—</span>×</p>
+          </div>
+          <svg class="ring" viewBox="0 0 48 48" aria-hidden="true"><circle class="ring-track" cx="24" cy="24" r="19"/><circle class="ring-fill" id="ring-burn" cx="24" cy="24" r="19"/></svg>
+        </div>
+      </article>
+
+      <article class="card metric" data-tone="ok" id="card-latency">
+        <div class="metric-head">
+          <h2 class="label">Latency p95</h2>
+          <span class="tag mono" id="latency-tag">SLO &lt; 300 ms</span>
+        </div>
+        <div class="metric-body">
+          <div>
+            <p class="value mono"><span id="metric-p95">—</span><span class="unit">ms</span></p>
+            <p class="sub mono">p50 <span id="metric-p50">—</span> · p99 <span id="metric-p99">—</span> ms</p>
+          </div>
+          <svg class="ring" viewBox="0 0 48 48" aria-hidden="true"><circle class="ring-track" cx="24" cy="24" r="19"/><circle class="ring-fill" id="ring-latency" cx="24" cy="24" r="19"/></svg>
+        </div>
+      </article>
+
+      <article class="card metric" data-tone="ok" id="card-traffic">
+        <div class="metric-head">
+          <h2 class="label">Traffic</h2>
+          <span class="tag mono">Live</span>
+        </div>
+        <div class="metric-body">
+          <div>
+            <p class="value mono"><span id="metric-rps">—</span><span class="unit">req/s</span></p>
+            <p class="sub mono"><span id="metric-total">0</span> total · <span id="metric-errors">0</span> 5xx</p>
+          </div>
+          <svg class="ring" viewBox="0 0 48 48" aria-hidden="true"><circle class="ring-track" cx="24" cy="24" r="19"/><circle class="ring-fill" id="ring-cpu" cx="24" cy="24" r="19"/></svg>
+        </div>
+        <p class="footnote mono">CPU <span id="metric-cpu">—</span> · RSS <span id="metric-mem">—</span></p>
+      </article>
+    </section>
+
+    <div class="grid-2">
+      <!-- Live chart -->
+      <section class="card" aria-labelledby="chart-title">
+        <div class="card-head">
+          <h2 id="chart-title" class="title">Live telemetry</h2>
+          <div class="legend" role="group" aria-label="Toggle series">
+            <button type="button" class="legend-item" data-series="errors" aria-pressed="true"><span class="swatch swatch-errors"></span>5xx %</button>
+            <button type="button" class="legend-item" data-series="p95" aria-pressed="true"><span class="swatch swatch-p95"></span>p95 ms</button>
+            <button type="button" class="legend-item" data-series="rps" aria-pressed="true"><span class="swatch swatch-rps"></span>req/s</button>
+          </div>
+        </div>
+        <svg id="chart" class="chart" viewBox="0 0 600 220" preserveAspectRatio="none" role="img" aria-label="Error rate, p95 latency and throughput over the last 2 minutes">
+          <g class="chart-grid" id="chart-grid"></g>
+          <path class="series series-rps" id="series-rps"/>
+          <path class="series series-p95" id="series-p95"/>
+          <path class="series series-errors-area" id="series-errors-area"/>
+          <path class="series series-errors" id="series-errors"/>
+        </svg>
+        <p class="footnote mono" id="chart-caption">Last 60 samples · 2 s interval</p>
+      </section>
+
+      <!-- Chaos controls -->
+      <section class="card" aria-labelledby="chaos-title">
+        <div class="card-head">
+          <h2 id="chaos-title" class="title">Fault injection</h2>
+          <span class="tag mono" id="chaos-badge">Locked</span>
+        </div>
+
+        <form class="unlock" id="unlock-form" autocomplete="off">
+          <label for="chaos-token" class="sub">Chaos token <span class="muted">(CHAOS_TOKEN in .env)</span></label>
+          <div class="unlock-row">
+            <input id="chaos-token" type="password" spellcheck="false" placeholder="Paste token to unlock controls" aria-describedby="chaos-msg">
+            <button type="submit" class="btn btn-primary">Unlock</button>
+          </div>
+        </form>
+
+        <div class="chaos-grid" id="chaos-grid">
+          <button type="button" class="btn chaos" data-chaos="latency" data-value="500" disabled><strong>+500 ms latency</strong><span>Controlled degradation</span></button>
+          <button type="button" class="btn chaos" data-chaos="latency" data-value="1500" disabled><strong>+1500 ms latency</strong><span>Breaches 300 ms SLO</span></button>
+          <button type="button" class="btn chaos" data-chaos="error" data-value="0.15" disabled><strong>15% 5xx errors</strong><span>Medium burn</span></button>
+          <button type="button" class="btn chaos" data-chaos="error" data-value="0.5" disabled><strong>50% 5xx errors</strong><span>Fast burn, pages on-call</span></button>
+          <button type="button" class="btn chaos" data-chaos="circuit" disabled><strong>Trip DB pool</strong><span>Simulates Cloud SQL outage</span></button>
+          <button type="button" class="btn chaos chaos-reset" data-chaos="reset" disabled><strong>Restore baseline</strong><span>Clear every fault</span></button>
+        </div>
+
+        <div class="traffic-row">
+          <button type="button" class="btn" id="btn-burst" disabled>Send 30 requests</button>
+          <button type="button" class="btn" id="btn-autopilot" aria-pressed="false" disabled>Auto traffic: off</button>
+        </div>
+        <p class="footnote mono" id="chaos-msg" role="status" aria-live="polite">Controls are locked until a valid token is provided.</p>
+      </section>
+    </div>
+
+    <div class="grid-2">
+      <!-- AI triage -->
+      <section class="card" aria-labelledby="triage-title">
+        <div class="card-head">
+          <h2 id="triage-title" class="title">Incident triage</h2>
+          <div class="triage-actions">
+            <div class="segmented" role="radiogroup" aria-label="Analysis engine">
+              <button type="button" role="radio" id="engine-rules" aria-checked="true">Rules</button>
+              <button type="button" role="radio" id="engine-ai" aria-checked="false" disabled title="Set GEMINI_API_KEY in .env to enable">AI</button>
+            </div>
+            <button type="button" class="btn btn-primary" id="btn-triage">Run analysis</button>
+          </div>
+        </div>
+        <div class="incident" id="incident" data-tone="ok">
+          <div class="incident-meta">
+            <span class="tag mono" id="incident-severity">Healthy</span>
+            <span class="mono muted"><span id="incident-id">SYS-NOMINAL</span> · <span id="incident-source">rules</span></span>
+          </div>
+          <h3 class="incident-title" id="incident-title">All golden signals within SLO targets</h3>
+          <p class="sub" id="incident-cause">Run an analysis to correlate the current telemetry with a probable root cause.</p>
+        </div>
+        <dl class="rca">
+          <div><dt class="label">SLO impact</dt><dd id="rca-slo">—</dd></div>
+          <div><dt class="label">Burn</dt><dd class="mono" id="rca-burn">—</dd></div>
+          <div><dt class="label">Correlated traces</dt><dd class="trace-list mono" id="rca-traces">—</dd></div>
+          <div><dt class="label">Runbook</dt><dd class="mono" id="rca-runbook">—</dd></div>
+        </dl>
+        <div class="command">
+          <code class="mono" id="rca-command">kubectl get pods -l app=sre-api -o wide</code>
+          <button type="button" class="btn btn-small" id="btn-copy" aria-label="Copy mitigation command">Copy</button>
+        </div>
+      </section>
+
+      <!-- Alerts -->
+      <section class="card" aria-labelledby="alerts-title">
+        <div class="card-head">
+          <h2 id="alerts-title" class="title">Alerts</h2>
+          <span class="tag mono" id="alerts-count">—</span>
+        </div>
+        <h3 class="label">Firing in Alertmanager</h3>
+        <ul class="feed" id="alerts-firing"></ul>
+        <h3 class="label feed-gap">Triage bot reports</h3>
+        <ul class="feed" id="alerts-reports"></ul>
+      </section>
+    </div>
+
+    <!-- Endpoints + pods -->
+    <section class="card" aria-labelledby="endpoints-title">
+      <div class="card-head">
+        <h2 id="endpoints-title" class="title">Endpoints</h2>
+        <span class="tag mono">5m window</span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th scope="col">Route</th><th scope="col">req/s</th><th scope="col">p50</th><th scope="col">p95</th><th scope="col">5xx</th><th scope="col">Status</th></tr></thead>
+          <tbody id="endpoints-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card" aria-labelledby="pods-title">
+      <div class="card-head">
+        <h2 id="pods-title" class="title">Scrape targets</h2>
+        <span class="tag mono">Prometheus</span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th scope="col">Job</th><th scope="col">Instance</th><th scope="col">Health</th><th scope="col">Scrape</th><th scope="col">Last error</th></tr></thead>
+          <tbody id="pods-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Logs -->
+    <section class="card" aria-labelledby="logs-title">
+      <div class="card-head">
+        <h2 id="logs-title" class="title">Structured logs</h2>
+        <div class="btn-group">
+          <button type="button" class="btn btn-small" id="btn-pause" aria-pressed="false">Pause</button>
+          <button type="button" class="btn btn-small" id="btn-clear">Clear</button>
+        </div>
+      </div>
+      <ol class="console mono" id="logs" aria-live="off"></ol>
+    </section>
+
+    <!-- Runbooks / post-mortem -->
+    <section class="card" aria-labelledby="ops-title">
+      <div class="card-head">
+        <h2 id="ops-title" class="title">Operations library</h2>
+        <div class="segmented" role="tablist" aria-label="Library section">
+          <button type="button" role="tab" id="tab-runbooks" aria-selected="true" aria-controls="panel-runbooks">Runbooks</button>
+          <button type="button" role="tab" id="tab-postmortem" aria-selected="false" aria-controls="panel-postmortem" tabindex="-1">Post-mortem</button>
+        </div>
+      </div>
+
+      <div id="panel-runbooks" role="tabpanel" aria-labelledby="tab-runbooks" class="runbooks">
+        <article class="runbook">
+          <p class="tag mono">P1 · Fast burn</p>
+          <h3 class="mono">high-error-rate.md</h3>
+          <p class="sub">Error budget burning above 14.4×. Restore service and isolate bad traffic.</p>
+          <code class="mono">make chaos-reset</code>
+        </article>
+        <article class="runbook">
+          <p class="tag mono">P2 · Latency</p>
+          <h3 class="mono">high-latency.md</h3>
+          <p class="sub">p95 above 300 ms. Scale replicas and check the connection pool.</p>
+          <code class="mono">kubectl scale deploy sre-api --replicas=5</code>
+        </article>
+        <article class="runbook">
+          <p class="tag mono">P1 · Outage</p>
+          <h3 class="mono">api-down.md</h3>
+          <p class="sub">Pods in CrashLoopBackOff or OOMKilled (exit 137). Safe rollout restart.</p>
+          <code class="mono">kubectl rollout restart deploy/sre-api</code>
+        </article>
+      </div>
+
+      <div id="panel-postmortem" role="tabpanel" aria-labelledby="tab-postmortem" class="postmortem" hidden>
+        <div class="postmortem-head">
+          <h3 class="mono">INC-2026-11-04 · Database timeout</h3>
+          <span class="tag mono">Resolved · 18 min · 3.8% budget</span>
+        </div>
+        <dl>
+          <dt class="label">Summary</dt>
+          <dd>On 4 Nov 2026 at 14:10 UTC an unindexed analytical query ran full table scans on <span class="mono">/api/v1/items</span>. The Cloud SQL PostgreSQL connection pool was exhausted within 45 seconds, cascading into HTTP 500s.</dd>
+          <dt class="label">Detection</dt>
+          <dd>The multi-window <span class="mono">FastErrorBudgetBurn</span> alert fired at 45 seconds. The triage bot correlated structured logs with trace <span class="mono">trc-03d12a</span> and sent the mitigation to on-call.</dd>
+          <dt class="label">Corrective action</dt>
+          <dd>Composite B-Tree index added, <span class="mono">max_connections</span> tuned and an adaptive circuit breaker enabled on the business endpoint.</dd>
+        </dl>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <img src="/static/img/gc-mark-dark.svg" alt="" width="28" height="28">
+    <p><strong class="display-sm">Checkmate</strong> <span class="muted">· Strategic SRE incident intelligence</span></p>
+    <p class="mono muted">Prometheus · Alertmanager · Loki</p>
+  </footer>
+</body>
+</html>

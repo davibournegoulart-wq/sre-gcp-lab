@@ -5,19 +5,32 @@ inspects chaos states, invokes LLMs (Gemini / Claude) for Root Cause Analysis (R
 and dispatches actionable incident triage cards.
 """
 
+import hmac
 import os
 import json
 import logging
-from datetime import datetime
+import re
+import threading
+import time
+from datetime import datetime, timezone
 from typing import Dict, Any, List, Optional
-from fastapi import FastAPI, BackgroundTasks
-from pydantic import BaseModel
+from fastapi import FastAPI, BackgroundTasks, Header, HTTPException
+from pydantic import BaseModel, Field, field_validator
 import requests
 
-logging.basicConfig(
-    level=logging.INFO,
-    format='{"timestamp":"%(asctime)s","level":"%(levelname)s","service":"triage-bot","message":"%(message)s"}'
-)
+class JsonLogFormatter(logging.Formatter):
+    def format(self, record):
+        return json.dumps({
+            "timestamp": self.formatTime(record),
+            "level": record.levelname,
+            "service": "triage-bot",
+            "message": record.getMessage(),
+        })
+
+
+_handler = logging.StreamHandler()
+_handler.setFormatter(JsonLogFormatter())
+logging.basicConfig(level=logging.INFO, handlers=[_handler])
 logger = logging.getLogger("triage-bot")
 
 app = FastAPI(
@@ -33,21 +46,71 @@ SLACK_WEBHOOK_URL = os.getenv("SLACK_WEBHOOK_URL")
 DISCORD_WEBHOOK_URL = os.getenv("DISCORD_WEBHOOK_URL")
 OUTPUT_DIR = os.getenv("OUTPUT_DIR", "/app/reports")
 os.makedirs(OUTPUT_DIR, exist_ok=True)
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+# LLM spend guard: the Gemini free tier is a small daily quota.
+LLM_DAILY_LIMIT = int(os.getenv("LLM_DAILY_LIMIT", "20"))
+LLM_COOLDOWN_S = int(os.getenv("LLM_COOLDOWN_S", "300"))
+
+
+def _load_webhook_token() -> str:
+    path = os.getenv("ALERT_WEBHOOK_TOKEN_FILE", "/run/secrets/alert_webhook_token")
+    try:
+        with open(path) as f:
+            return f.read().strip()
+    except OSError:
+        return os.getenv("ALERT_WEBHOOK_TOKEN", "").strip()
+
+
+# /alerts was open to anyone who could reach :5001 — forged alerts burned the
+# LLM quota and pushed attacker text into Slack/Discord. Alertmanager now sends
+# this token as a Bearer credential (alertmanager.yml http_config).
+ALERT_WEBHOOK_TOKEN = _load_webhook_token()
+if len(ALERT_WEBHOOK_TOKEN) < 24:
+    raise RuntimeError("ALERT_WEBHOOK_TOKEN(_FILE) must hold a token of at least 24 characters")
+
+_llm_lock = threading.Lock()
+_llm_calls: List[float] = []
+_llm_last_by_alert: Dict[str, float] = {}
+
+
+def llm_call_allowed(alert_name: str, now: Optional[float] = None) -> bool:
+    """Daily cap plus a per-alert cooldown, so a flapping alert can't drain the quota."""
+    now = time.time() if now is None else now
+    with _llm_lock:
+        _llm_calls[:] = [t for t in _llm_calls if now - t < 86400]
+        if len(_llm_calls) >= LLM_DAILY_LIMIT:
+            return False
+        if now - _llm_last_by_alert.get(alert_name, 0.0) < LLM_COOLDOWN_S:
+            return False
+        _llm_calls.append(now)
+        _llm_last_by_alert[alert_name] = now
+        return True
+
+
+def safe_filename_part(value: Optional[str]) -> str:
+    return re.sub(r"[^A-Za-z0-9_.-]", "_", value or "alert")[:64].lstrip(".") or "alert"
 
 
 class AlertItem(BaseModel):
-    status: str
+    status: str = Field(max_length=32)
     labels: Dict[str, str] = {}
     annotations: Dict[str, str] = {}
-    startsAt: Optional[str] = None
-    endsAt: Optional[str] = None
+    startsAt: Optional[str] = Field(default=None, max_length=64)
+    endsAt: Optional[str] = Field(default=None, max_length=64)
+
+    @field_validator("labels", "annotations")
+    @classmethod
+    def bounded_map(cls, v: Dict[str, str]) -> Dict[str, str]:
+        if len(v) > 40 or any(len(k) > 128 or len(val) > 2048 for k, val in v.items()):
+            raise ValueError("label/annotation map too large")
+        return v
 
 
 class AlertmanagerPayload(BaseModel):
-    version: Optional[str] = None
-    status: str
-    receiver: Optional[str] = None
-    alerts: List[AlertItem] = []
+    version: Optional[str] = Field(default=None, max_length=16)
+    status: str = Field(max_length=32)
+    receiver: Optional[str] = Field(default=None, max_length=128)
+    alerts: List[AlertItem] = Field(default=[], max_length=50)
 
 
 def query_prometheus_metric(query: str) -> Optional[float]:
@@ -148,11 +211,11 @@ def fallback_rca_engine(alert: AlertItem, telemetry: Dict[str, Any]) -> Dict[str
 
 
 def call_gemini_rca(alert: AlertItem, telemetry: Dict[str, Any]) -> Dict[str, Any]:
-    """Query Gemini 1.5 with live telemetry context for intelligent Root Cause Analysis."""
+    """Query Gemini with live telemetry context for intelligent Root Cause Analysis.
+    google-generativeai and gemini-1.5-flash are retired; this uses google-genai."""
     try:
-        import google.generativeai as genai
-        genai.configure(api_key=GEMINI_API_KEY)
-        model = genai.GenerativeModel("gemini-1.5-flash")
+        from google import genai
+        client = genai.Client(api_key=GEMINI_API_KEY)
 
         prompt = f"""
 You are an expert Google Site Reliability Engineer (SRE).
@@ -175,7 +238,11 @@ Analyze this data and return a JSON object with:
 - "blast_radius": Estimated user impact and SLO Error Budget burn
 - "recommended_actions": Array of 3 specific shell commands or immediate mitigation steps
 """
-        response = model.generate_content(prompt)
+        response = client.models.generate_content(
+            model=GEMINI_MODEL,
+            contents=prompt,
+            config={"response_mime_type": "application/json"},
+        )
         text = response.text.strip()
         if text.startswith("```json"):
             text = text[7:]
@@ -183,7 +250,7 @@ Analyze this data and return a JSON object with:
             text = text[:-3]
         result = json.loads(text.strip())
         result["telemetry_snapshot"] = telemetry
-        result["source"] = "gemini-1.5-flash"
+        result["source"] = GEMINI_MODEL
         return result
     except Exception as e:
         logger.warning(f"Gemini API call failed ({e}), falling back to deterministic RCA.")
@@ -199,7 +266,7 @@ def dispatch_notification(triage_report: Dict[str, Any]):
 
     message_text = f"""
 🚨 **[SRE AI INCIDENT TRIAGE] {severity} - {alert_name}**
-• **Triggered At:** {datetime.utcnow().isoformat()}Z
+• **Triggered At:** {datetime.now(timezone.utc).isoformat()}
 • **Live Telemetry:** Error Rate: {telemetry.get('error_rate_5m')} | P95 Latency: {telemetry.get('p95_latency_s')}s | QPS: {telemetry.get('qps_total')}
 • **Root Cause Hypothesis:** {analysis.get('hypothesis')}
 • **Blast Radius & SLO Impact:** {analysis.get('blast_radius')}
@@ -230,19 +297,19 @@ def process_alert(alert: AlertItem):
     telemetry = fetch_live_telemetry_snapshot()
 
     # 2. Perform intelligent RCA
-    if GEMINI_API_KEY:
+    if GEMINI_API_KEY and llm_call_allowed(alert.labels.get("alertname", "")):
         analysis = call_gemini_rca(alert, telemetry)
     else:
         analysis = fallback_rca_engine(alert, telemetry)
 
     report = {
-        "timestamp": datetime.utcnow().isoformat() + "Z",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
         "alert": alert.model_dump(),
         "analysis": analysis
     }
 
     # Save to disk for audit
-    filename = f"{OUTPUT_DIR}/triage_{int(datetime.utcnow().timestamp())}_{alert.labels.get('alertname')}.json"
+    filename = f"{OUTPUT_DIR}/triage_{int(time.time())}_{safe_filename_part(alert.labels.get('alertname'))}.json"
     try:
         with open(filename, "w") as f:
             json.dump(report, f, indent=2)
@@ -254,11 +321,40 @@ def process_alert(alert: AlertItem):
 
 
 @app.post("/alerts")
-async def receive_alerts(payload: AlertmanagerPayload, background_tasks: BackgroundTasks):
+async def receive_alerts(payload: AlertmanagerPayload, background_tasks: BackgroundTasks,
+                         authorization: str = Header(default="")):
+    if not hmac.compare_digest(authorization.encode(), f"Bearer {ALERT_WEBHOOK_TOKEN}".encode()):
+        raise HTTPException(status_code=401, detail="Unauthorized")
     logger.info(f"Received Alertmanager payload with {len(payload.alerts)} alerts")
     for alert in payload.alerts:
         background_tasks.add_task(process_alert, alert)
     return {"status": "accepted", "alerts_queued": len(payload.alerts)}
+
+
+@app.get("/reports")
+def latest_reports(limit: int = 8):
+    """Newest triage reports, trimmed to what the Mission Control card shows."""
+    limit = max(1, min(limit, 20))
+    files = sorted(
+        (f for f in os.listdir(OUTPUT_DIR) if f.startswith("triage_") and f.endswith(".json")),
+        reverse=True,
+    )[:limit]
+    reports = []
+    for name in files:
+        try:
+            with open(os.path.join(OUTPUT_DIR, name)) as f:
+                r = json.load(f)
+        except (OSError, ValueError):
+            continue
+        analysis = r.get("analysis", {})
+        reports.append({
+            "timestamp": r.get("timestamp"),
+            "alert": r.get("alert", {}).get("labels", {}).get("alertname"),
+            "status": r.get("alert", {}).get("status"),
+            "hypothesis": str(analysis.get("hypothesis", ""))[:400],
+            "source": analysis.get("source"),
+        })
+    return {"reports": reports}
 
 
 @app.get("/healthz")

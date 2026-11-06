@@ -26,14 +26,18 @@ spec:
         prometheus.io/path: "/metrics"
         prometheus.io/port: "8000"
     spec:
+      automountServiceAccountToken: false
       securityContext:
+        seccompProfile:
+          type: RuntimeDefault
         runAsNonRoot: true
         runAsUser: 10001
         runAsGroup: 10001
         fsGroup: 10001
       containers:
       - name: api
-        image: southamerica-east1-docker.pkg.dev/YOUR_PROJECT_ID/sre-images/sre-api:latest
+        # Pin a release tag (or @sha256 digest), never :latest — rollbacks need a fixed image.
+        image: southamerica-east1-docker.pkg.dev/YOUR_PROJECT_ID/sre-images/sre-api:1.1.0
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8000
@@ -46,6 +50,9 @@ spec:
           value: "INFO"
         - name: ENVIRONMENT
           value: "production"
+        # Fault injection stays off in the cluster; /chaos/* returns 404.
+        - name: CHAOS_ENABLED
+          value: "false"
         resources:
           requests:
             cpu: 100m
@@ -55,10 +62,13 @@ spec:
             memory: 512Mi
         securityContext:
           allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: false
+          readOnlyRootFilesystem: true
           capabilities:
             drop:
             - ALL
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
         livenessProbe:
           httpGet:
             path: /healthz
@@ -75,4 +85,6 @@ spec:
           periodSeconds: 5
           timeoutSeconds: 2
           failureThreshold: 2
-
+      volumes:
+      - name: tmp
+        emptyDir: {}
